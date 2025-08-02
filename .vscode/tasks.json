@@ -1,0 +1,79 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Auto-Sync Watcher",
+            "type": "shell",
+            "command": "nodemon",
+            "args": [
+                "--watch", "BedrockWorldBorder_BP",
+                "--ext", "js,json,png,bbmodel,mcfunction",
+                "--ignore", "node_modules/",
+                "--ignore", ".git/",
+                "--exec", "robocopy BedrockWorldBorder_BP \"%LOCALAPPDATA%\\Packages\\Microsoft.MinecraftUWP_8wekyb3d8bbwe\\LocalState\\games\\com.mojang\\development_behavior_packs\\BedrockWorldBorder_BP\" /MIR /XD .git node_modules && echo Synced at %TIME%"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": false
+            },
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Manual Sync to Minecraft",
+            "type": "shell",
+            "command": "robocopy",
+            "args": [
+                "BedrockWorldBorder_BP",
+                "%LOCALAPPDATA%\\Packages\\Microsoft.MinecraftUWP_8wekyb3d8bbwe\\LocalState\\games\\com.mojang\\development_behavior_packs\\BedrockWorldBorder_BP",
+                "/MIR",
+                "/XD", ".git", "node_modules"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Stop Auto-Sync",
+            "type": "shell",
+            "command": "taskkill",
+            "args": ["/F", "/IM", "nodemon.exe"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Install/Update Nodemon",
+            "type": "shell",
+            "command": "npm",
+            "args": ["install", "-g", "nodemon"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

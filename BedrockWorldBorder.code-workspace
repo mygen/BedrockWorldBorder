@@ -1,0 +1,90 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "typescript.preferences.includePackageJsonAutoImports": "off",
+        "javascript.preferences.includePackageJsonAutoImports": "off",
+        "files.associations": {
+            "*.mcfunction": "plaintext",
+            "*.mcmeta": "json",
+            "*.mcstructure": "plaintext"
+        },
+        "files.exclude": {
+            "**/node_modules": true,
+            "**/package-lock.json": true
+        },
+        "search.exclude": {
+            "**/node_modules": true
+        },
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "files.encoding": "utf8",
+        "files.eol": "\n"
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-vscode.vscode-json",
+            "blockception.minecraft-bedrock-language",
+            "arcensoth.language-mcfunction",
+            "ms-vscode.vscode-typescript-next",
+            "bradlc.vscode-tailwindcss",
+            "esbenp.prettier-vscode",
+            "ms-vscode.vscode-eslint"
+        ]
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Start Auto-Sync",
+                "type": "shell",
+                "command": "auto-sync.bat",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "focus": false,
+                    "panel": "new"
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "Stop Auto-Sync",
+                "type": "shell",
+                "command": "taskkill /F /IM nodemon.exe",
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "focus": false,
+                    "panel": "shared"
+                },
+                "problemMatcher": []
+            },
+            {
+                "label": "Manual Sync to Development Folders",
+                "type": "shell",
+                "command": "robocopy",
+                "args": [
+                    "BedrockWorldBorder_BP",
+                    "%LOCALAPPDATA%\\Packages\\Microsoft.MinecraftUWP_8wekyb3d8bbwe\\LocalState\\games\\com.mojang\\development_behavior_packs\\BedrockWorldBorder_BP",
+                    "/MIR",
+                    "/XD",
+                    ".git",
+                    "node_modules"
+                ],
+                "group": "build",
+                "presentation": {
+                    "echo": true,
+                    "reveal": "always",
+                    "focus": false,
+                    "panel": "shared"
+                },
+                "problemMatcher": []
+            }
+        ]
+    }
+}
