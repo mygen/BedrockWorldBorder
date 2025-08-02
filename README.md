@@ -5,12 +5,11 @@ A comprehensive world border addon for Minecraft Bedrock Edition that prevents p
 ## Features
 
 ### Core Functionality
-- **Multi-Dimension Support**: Different border sizes and enable/disable states for Overworld, Nether, and The End
-- **Granular Control**: Set borders per-dimension or all at once with flexible commands
+- **Multi-Dimension Support**: Different border sizes for Overworld, Nether, and The End
 - **Safe Teleportation**: Players are teleported back to the border edge at their current Y-level
-- **Configurable Warning System**: Adjustable warning distance and toggle on/off capability
+- **Warning System**: Configurable warning distance with action bar notifications
 - **Admin Exemption**: Players with 'admin' tag can pass through borders
-- **Persistent Settings**: All configuration saves between server restarts with per-dimension tracking
+- **Persistent Settings**: All configuration saves between server/realm restarts
 
 ### Performance
 - **Optimized Checking**: Runs once per second instead of every tick
@@ -34,37 +33,18 @@ A comprehensive world border addon for Minecraft Bedrock Edition that prevents p
 
 All commands require Game Director permissions and use the `/worldborder:` prefix:
 
-### `/worldborder:set <dimension> <size>`
-Sets the border size for specified dimension(s).
-- **dimension**: `all`, `overworld`, `nether`, or `end`
+### `/worldborder:set <size>`
+Sets the border size for the Overworld dimension.
 - **size**: Integer value (minimum 100 blocks)
-- **Examples**: 
-  - `/worldborder:set all 1500` - Set all dimensions to 1500 blocks
-  - `/worldborder:set overworld 2000` - Set only Overworld to 2000 blocks
-  - `/worldborder:set nether 500` - Set only Nether to 500 blocks
+- **Example**: `/worldborder:set 1500`
 
-### `/worldborder:toggle [dimension]`
-Toggles the world border enforcement on/off for specified dimension(s).
-- **dimension**: `all` (default), `overworld`, `nether`, or `end`
-- **Examples**:
-  - `/worldborder:toggle` - Toggle all dimensions
-  - `/worldborder:toggle overworld` - Toggle only Overworld
-  - `/worldborder:toggle nether` - Toggle only Nether
+### `/worldborder:toggle`
+Toggles the world border enforcement on/off globally.
+- **Example**: `/worldborder:toggle`
 
 ### `/worldborder:status`
 Shows current border configuration for all dimensions.
 - **Example**: `/worldborder:status`
-
-### `/worldborder:warn <on|off>`
-Toggles the warning system on or off globally.
-- **Examples**:
-  - `/worldborder:warn on` - Enable warning messages
-  - `/worldborder:warn off` - Disable warning messages
-
-### `/worldborder:warndistance <distance>`
-Sets the warning distance in blocks from the border.
-- **distance**: Integer value (1-1000 blocks)
-- **Example**: `/worldborder:warndistance 75` - Warn when within 75 blocks of border
 
 ## Configuration
 
@@ -95,9 +75,9 @@ Players with the `admin` tag bypass all border restrictions:
 ### Data Storage
 Settings are stored as world dynamic properties:
 - `worldBorderSizes`: JSON object with per-dimension sizes
-- `worldBorderEnabled`: JSON object with per-dimension enable/disable states
-- `worldBorderWarningDistance`: Warning threshold distance (1-1000 blocks)
-- `worldBorderWarningEnabled`: Global warning system toggle
+- `worldBorderEnabled`: Global enable/disable state
+- `worldBorderWarningDistance`: Warning threshold distance
+- `worldBorderWarningEnabled`: Warning system toggle
 
 ### Compatibility
 - **Server Performance**: Minimal impact with 1-second checking interval
