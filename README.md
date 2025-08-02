@@ -1,177 +1,166 @@
 # BedrockWorldBorder
 
-A Minecraft Bedrock Edition addon that prevents players from traveling beyond specified world borders with safe teleportation and admin controls.
+A comprehensive world border addon for Minecraft Bedrock Edition that prevents players from traveling beyond specified boundaries with safe teleportation back to the border edge.
 
 ## Features
 
-- **Dynamic World Border**: Set custom world border sizes using admin commands
-- **Safe Teleportation**: Players are safely teleported back when they exceed the border
-- **Warning System**: Players receive actionbar warnings when approaching the border
-- **Admin Controls**: Operators can configure border size with `!worldborder <size>` command
-- **Sound Effects**: Audio feedback when players hit the border
-- **Safe Landing**: Intelligent Y-coordinate detection for safe teleportation
+### Core Functionality
+- **Multi-Dimension Support**: Different border sizes and enable/disable states for Overworld, Nether, and The End
+- **Granular Control**: Set borders per-dimension or all at once with flexible commands
+- **Safe Teleportation**: Players are teleported back to the border edge at their current Y-level
+- **Configurable Warning System**: Adjustable warning distance and toggle on/off capability
+- **Admin Exemption**: Players with 'admin' tag can pass through borders
+- **Persistent Settings**: All configuration saves between server restarts with per-dimension tracking
+
+### Performance
+- **Optimized Checking**: Runs once per second instead of every tick
+- **Efficient Logic**: Only checks dimensions where players are present
+- **Minimal Overhead**: Lightweight implementation suitable for production servers
 
 ## Installation
 
-1. Download or clone this repository
-2. Copy the `BedrockWorldBorder_BP` folder to your Minecraft development behavior packs directory:
-   ```
-   %LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\development_behavior_packs\
-   ```
-3. Enable the behavior pack in your world settings
-4. Ensure "Script API" experimental toggle is enabled in your world
+1. **Download** the addon files
+2. **Copy** the `BedrockWorldBorder_BP` folder to your world's `behavior_packs` directory
+3. **Enable** the behavior pack in your world settings
+4. **Activate** the "Beta APIs" experiment in your world settings
+5. **Restart** your world/server
 
-## Development Setup
+### Requirements
+- Minecraft Bedrock Edition 1.21.0+
+- Beta APIs experiment enabled
+- @minecraft/server 2.1.0-beta
 
-### Prerequisites
-- Node.js (for nodemon file watching)
-- Visual Studio Code (recommended)
-- Minecraft Bedrock Edition
+## Commands
 
-### Quick Start
-1. Run `start-development.bat` to open the VSCode workspace
-2. Use `auto-sync.bat` or VSCode tasks to auto-sync files to Minecraft
-3. Enable experimental features in your test world
+All commands require Game Director permissions and use the `/worldborder:` prefix:
 
-### Available Commands
+### `/worldborder:set <dimension> <size>`
+Sets the border size for specified dimension(s).
+- **dimension**: `all`, `overworld`, `nether`, or `end`
+- **size**: Integer value (minimum 100 blocks)
+- **Examples**: 
+  - `/worldborder:set all 1500` - Set all dimensions to 1500 blocks
+  - `/worldborder:set overworld 2000` - Set only Overworld to 2000 blocks
+  - `/worldborder:set nether 500` - Set only Nether to 500 blocks
 
-#### Batch Files
-- `start-development.bat` - Opens VSCode workspace
-- `auto-sync.bat` - Starts file watcher for automatic syncing
+### `/worldborder:toggle [dimension]`
+Toggles the world border enforcement on/off for specified dimension(s).
+- **dimension**: `all` (default), `overworld`, `nether`, or `end`
+- **Examples**:
+  - `/worldborder:toggle` - Toggle all dimensions
+  - `/worldborder:toggle overworld` - Toggle only Overworld
+  - `/worldborder:toggle nether` - Toggle only Nether
 
-#### VSCode Tasks
-- **Start Auto-Sync Watcher** - Monitors files and syncs changes automatically
-- **Manual Sync to Minecraft** - One-time sync to development folders
-- **Stop Auto-Sync** - Stops the file watcher
-- **Install/Update Nodemon** - Installs nodemon globally
+### `/worldborder:status`
+Shows current border configuration for all dimensions.
+- **Example**: `/worldborder:status`
 
-## Usage
+### `/worldborder:warn <on|off>`
+Toggles the warning system on or off globally.
+- **Examples**:
+  - `/worldborder:warn on` - Enable warning messages
+  - `/worldborder:warn off` - Disable warning messages
 
-### Admin Commands
-- `!worldborder <size>` - Set world border size (requires admin/op permissions)
-  - Example: `!worldborder 5000` sets border to ±5000 blocks on X and Z axes
-  - Minimum size: 100 blocks
+### `/worldborder:warndistance <distance>`
+Sets the warning distance in blocks from the border.
+- **distance**: Integer value (1-1000 blocks)
+- **Example**: `/worldborder:warndistance 75` - Warn when within 75 blocks of border
 
-### Player Experience
-- Players receive warnings when within 50 blocks of the border
-- Actionbar messages show remaining distance to border
-- Safe teleportation back inside border when exceeded
-- Audio feedback (orb sound) when teleported
+## Configuration
 
-### Permissions
-- Admin commands require either:
-  - Operator status (`/op <player>`)
-  - Admin tag (`/tag <player> add admin`)
+### Default Border Sizes
+- **Overworld**: 1000 blocks
+- **Nether**: 500 blocks  
+- **The End**: 1000 blocks
+
+### Warning System
+- **Default Warning Distance**: 50 blocks from border
+- **Warning Message**: Shows remaining distance in action bar
+- **Configurable**: Can be disabled or distance modified
+
+### Admin Exemption
+Players with the `admin` tag bypass all border restrictions:
+```
+/tag @s add admin
+```
 
 ## Technical Details
 
-### File Structure
-```
-BedrockWorldBorder/
-├── BedrockWorldBorder_BP/          # Behavior Pack
-│   ├── manifest.json               # Pack manifest with dependencies
-│   ├── scripts/
-│   │   └── main.js                 # Main addon logic
-│   └── pack_icon.png               # Pack icon (optional)
-├── .vscode/
-│   └── tasks.json                  # VSCode tasks for development
-├── BedrockWorldBorder.code-workspace # VSCode workspace
-├── auto-sync.bat                   # Auto-sync script
-├── start-development.bat           # Development launcher
-├── .gitignore                      # Git ignore rules
-└── README.md                       # This file
-```
+### How It Works
+1. **Position Checking**: Scans all player positions once per second
+2. **Distance Calculation**: Uses maximum of absolute X or Z coordinates
+3. **Dimension Detection**: Automatically detects player's current dimension
+4. **Safe Teleportation**: Moves players to border edge minus 5 blocks for safety
 
-### Dependencies
-- `@minecraft/server` v1.15.0+ - Core server API
-- Node.js with nodemon - Development file watching
+### Data Storage
+Settings are stored as world dynamic properties:
+- `worldBorderSizes`: JSON object with per-dimension sizes
+- `worldBorderEnabled`: JSON object with per-dimension enable/disable states
+- `worldBorderWarningDistance`: Warning threshold distance (1-1000 blocks)
+- `worldBorderWarningEnabled`: Global warning system toggle
 
-### Configuration
-- Default border size: 1000 blocks
-- Warning distance: 50 blocks from border
-- Check interval: Every 20 ticks (1 second)
-- Safe teleport offset: 5 blocks inside border
-
-## Development
-
-### File Watching
-The addon includes automatic file synchronization:
-- Watches: `*.js`, `*.json`, `*.png`, `*.bbmodel`, `*.mcfunction`
-- Syncs to: Minecraft development behavior packs folder
-- Excludes: `node_modules`, `.git` folders
-
-### Testing
-1. Create a new world with experimental features enabled
-2. Add the behavior pack to the world
-3. Test with `/gamemode creative` for easy movement
-4. Use `/tp` commands to test border detection
-
-### Customization
-Modify `main.js` to adjust:
-- Default border size
-- Warning distance
-- Check frequency
-- Admin command prefix
-- Teleportation behavior
-
-## Git Setup
-
-Initialize Git repository and connect to GitHub:
-
-```bash
-# Initialize repository
-git init
-
-# Add all files
-git add .
-
-# Create initial commit
-git commit -m "Initial commit: BedrockWorldBorder addon setup"
-
-# Add remote repository (replace with your GitHub repo URL)
-git remote add origin https://github.com/yourusername/BedrockWorldBorder.git
-
-# Push to GitHub
-git branch -M main
-git push -u origin main
-```
+### Compatibility
+- **Server Performance**: Minimal impact with 1-second checking interval
+- **Multiplayer Ready**: Handles multiple players efficiently
+- **Cross-Platform**: Works on all Bedrock platforms
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Addon not working**
-   - Ensure experimental features are enabled
-   - Check behavior pack is applied to world
-   - Verify script module dependencies in manifest.json
+**Commands not working**
+- Ensure Beta APIs experiment is enabled
+- Verify you have Game Director permissions
+- Check addon is properly installed in behavior_packs folder
 
-2. **Auto-sync not working**
-   - Install Node.js and nodemon: `npm install -g nodemon`
-   - Check file paths in auto-sync.bat
-   - Ensure Minecraft is closed when syncing
+**Players not being teleported**
+- Confirm border is enabled with `/worldborder:status`
+- Check if player has 'admin' tag (they bypass borders)
+- Verify addon loaded successfully in game logs
 
-3. **Commands not responding**
-   - Verify admin permissions (`/op` or admin tag)
-   - Check command prefix (default: `!`)
-   - Ensure chat messages start with exact command syntax
+**Settings not saving**
+- Ensure world has write permissions
+- Check for script errors in game logs
+- Verify @minecraft/server version compatibility
 
-### Debug Tips
-- Check Minecraft behavior pack logs for script errors
-- Use `/reload` command to refresh scripts
-- Test in creative mode for easier debugging
+### Performance Notes
+- Checking only occurs in dimensions with active players
+- No performance impact when no players are near borders
+- Teleportation includes fallback methods for API compatibility
+
+## Development
+
+### File Structure
+```
+BedrockWorldBorder_BP/
+├── manifest.json          # Addon metadata and dependencies
+├── scripts/
+│   └── main.js            # Core addon logic
+└── README.md              # This documentation
+```
+
+### Extending the Addon
+The code is modular and can be extended to add:
+- Additional command parameters for dimension-specific settings
+- Custom warning messages per dimension
+- Integration with other server management addons
+- Advanced permission systems
 
 ## License
 
-This project is open source. Feel free to modify and distribute according to your needs.
+This addon is provided as-is for educational and server management purposes. Feel free to modify and distribute according to your needs.
 
-## Contributing
+## Support
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+For issues, feature requests, or questions:
+1. Check the troubleshooting section above
+2. Review game logs for script errors
+3. Verify all requirements are met
+4. Test with minimal addon setup to isolate issues
 
 ---
 
-**Note**: This addon requires Minecraft Bedrock Edition with Script API experimental features enabled.
+**Version**: 2.0  
+**Last Updated**: 2025  
+**Minecraft Version**: 1.21.0+  
+**API Version**: @minecraft/server 2.1.0-beta

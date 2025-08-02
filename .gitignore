@@ -1,35 +1,17 @@
-# Node.js dependencies
+# Development and IDE files
+.vscode/
+.claude/
+*.code-workspace
+
+# Development scripts and batch files
+*.bat
+auto-sync.*
+start-development.*
+
+# Node.js dependencies (if any)
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-.npm
-
-# Minecraft temporary files
-*.tmp
-*.temp
-*.bak
-*.backup
-
-# Development and build artifacts
-.cache/
-dist/
-build/
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# IDE and editor files
-.vscode/settings.json
-.vscode/launch.json
-.vscode/*.log
-.idea/
-*.swp
-*.swo
-*~
+package*.json
+*.log
 
 # OS generated files
 .DS_Store
@@ -41,29 +23,17 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# Windows specific
-*.lnk
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
 
-# Logs
-logs/
-*.log
-
-# Minecraft development sync targets
+# Development sync targets
 development_behavior_packs/
 development_resource_packs/
 
-# Pack icon source files (keep only final pack_icon.png)
-*.psd
-*.ai
-*.sketch
-*.figma
-
-# Auto-generated files
-*.generated.*
-
-# Testing
+# Testing files
 test-worlds/
 *.mcworld
-
-# Documentation drafts
-docs/drafts/

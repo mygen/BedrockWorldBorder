@@ -1,37 +1,17 @@
 @echo off
-echo Starting BedrockWorldBorder Auto-Sync...
-echo.
-echo This will automatically sync your addon files to Minecraft when changes are detected.
-echo Watching files: *.js, *.json, *.png, *.bbmodel, *.mcfunction
-echo.
-echo Target Directory: %LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\development_behavior_packs\BedrockWorldBorder_BP
-echo.
+setlocal enabledelayedexpansion
 
-REM Check if nodemon is installed
-where nodemon >nul 2>&1
-if %ERRORLEVEL% neq 0 (
-    echo Nodemon not found. Installing globally...
-    npm install -g nodemon
-    if %ERRORLEVEL% neq 0 (
-        echo Error: Failed to install nodemon. Please install Node.js first.
-        pause
-        exit /b 1
-    )
-)
+set SOURCE=%~dp0
+set MINECRAFT_DIR=D:\Minecraft Stuff\BDS
+set LOCAL_DIR=C:\Users\rob\AppData\Local\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang
+echo [%time%] Syncing BedrockWorldBorder addon changes to Minecraft...
 
-REM Create target directory if it doesn't exist
-if not exist "%LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\development_behavior_packs\BedrockWorldBorder_BP" (
-    echo Creating target directory...
-    mkdir "%LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\development_behavior_packs\BedrockWorldBorder_BP"
-)
-
-REM Initial sync
-echo Performing initial sync...
-robocopy "BedrockWorldBorder_BP" "%LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\development_behavior_packs\BedrockWorldBorder_BP" /MIR /XD .git node_modules
+REM Create directories if they don't exist
+if not exist "%MINECRAFT_DIR%\behavior_packs\BedrockWorldBorder" mkdir "%MINECRAFT_DIR%\behavior_packs\BedrockWorldBorder"
+if not exist "%LOCAL_DIR%\behavior_packs\BedrockWorldBorder" mkdir "%MINECRAFT_DIR%\behavior_packs\BedrockWorldBorder"
+REM Sync behavior pack (from BedrockWorldBorder_BP) - Mirror mode handles deletions
+echo [%time%] Syncing behavior pack from BedrockWorldBorder_BP...
+robocopy "%SOURCE%BedrockWorldBorder_BP" "%MINECRAFT_DIR%\behavior_packs\BedrockWorldBorder" /MIR /NP /NJH /NJS
+robocopy "%SOURCE%BedrockWorldBorder_BP" "%LOCAL_DIR%\behavior_packs\BedrockWorldBorder" /MIR /NP /NJH /NJS
+echo [%time%] SUCCESS: Sync complete! Changes available in Minecraft.
 echo.
-
-REM Start watching for changes
-echo Starting file watcher...
-echo Press Ctrl+C to stop watching
-echo.
-nodemon --watch "BedrockWorldBorder_BP" --ext "js,json,png,bbmodel,mcfunction" --ignore "node_modules/" --ignore ".git/" --exec "robocopy BedrockWorldBorder_BP \"%LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\development_behavior_packs\BedrockWorldBorder_BP\" /MIR /XD .git node_modules && echo Synced at %TIME%"

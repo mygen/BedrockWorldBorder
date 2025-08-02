@@ -2,29 +2,34 @@
     "format_version": 2,
     "header": {
         "name": "BedrockWorldBorder",
-        "description": "A Minecraft Bedrock addon that prevents players from traveling beyond specified world borders with safe teleportation",
+        "description": "A comprehensive world border addon with multi-dimension support, admin controls, and configurable warnings",
         "uuid": "3e821d0f-d902-4ea1-ab8b-1b85ac8e8eab",
-        "version": [1, 0, 0],
+        "version": [2, 0, 0],
         "min_engine_version": [1, 21, 0]
+    },
+    "metadata": {
+        "authors": ["Rob 'myGen' Hall"],
+        "license": "CC BY-NC-SA 4.0",
+        "url": "https://www.britannica.world"
     },
     "modules": [
         {
             "type": "script",
             "language": "javascript",
             "uuid": "8bfa6b92-4109-4122-ba4f-aca99d125001",
-            "version": [1, 0, 0],
+            "version": [2, 0, 0],
             "entry": "scripts/main.js"
         },
         {
             "type": "data",
             "uuid": "64e6f132-ef2a-4dc1-a5c6-3b1ee23e32f3",
-            "version": [1, 0, 0]
+            "version": [2, 0, 0]
         }
     ],
     "dependencies": [
         {
             "module_name": "@minecraft/server",
-            "version": "1.15.0"
+            "version": "2.1.0-beta"
         }
     ]
 }
