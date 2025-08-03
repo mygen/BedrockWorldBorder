@@ -1,3 +1,5 @@
+![BedrockWorldBorder](minecraft_title.png)
+
 # BedrockWorldBorder
 
 A comprehensive world border addon for Minecraft Bedrock Edition that prevents players from traveling beyond specified boundaries with safe teleportation back to the border edge.
@@ -5,16 +7,16 @@ A comprehensive world border addon for Minecraft Bedrock Edition that prevents p
 ## Features
 
 ### Core Functionality
-- **Multi-Dimension Support**: Different border sizes for Overworld, Nether, and The End
+- **Multi-Dimension Support**: Different border sizes and enable/disable states for Overworld, Nether, and The End
+- **Granular Control**: Set borders per-dimension or all at once with flexible commands
 - **Safe Teleportation**: Players are teleported back to the border edge at their current Y-level
-- **Warning System**: Configurable warning distance with action bar notifications
+- **Configurable Warning System**: Adjustable warning distance and toggle on/off capability
 - **Admin Exemption**: Players with 'admin' tag can pass through borders
-- **Persistent Settings**: All configuration saves between server/realm restarts
+- **Persistent Settings**: All configuration saves between server restarts with per-dimension tracking
 
 ### Performance
 - **Optimized Checking**: Runs once per second instead of every tick
 - **Efficient Logic**: Only checks dimensions where players are present
-- **Minimal Overhead**: Lightweight implementation suitable for production servers
 
 ## Installation
 
@@ -31,20 +33,39 @@ A comprehensive world border addon for Minecraft Bedrock Edition that prevents p
 
 ## Commands
 
-All commands require Game Director permissions and use the `/worldborder:` prefix:
+All commands require Op permissions and use the `/worldborder:` prefix:
 
-### `/worldborder:set <size>`
-Sets the border size for the Overworld dimension.
+### `/worldborder:set <dimension> <size>`
+Sets the border size for specified dimension(s).
+- **dimension**: `all`, `overworld`, `nether`, or `end`
 - **size**: Integer value (minimum 100 blocks)
-- **Example**: `/worldborder:set 1500`
+- **Examples**: 
+  - `/worldborder:set all 1500` - Set all dimensions to 1500 blocks
+  - `/worldborder:set overworld 2000` - Set only Overworld to 2000 blocks
+  - `/worldborder:set nether 500` - Set only Nether to 500 blocks
 
-### `/worldborder:toggle`
-Toggles the world border enforcement on/off globally.
-- **Example**: `/worldborder:toggle`
+### `/worldborder:toggle [dimension]`
+Toggles the world border enforcement on/off for specified dimension(s).
+- **dimension**: `all` (default), `overworld`, `nether`, or `end`
+- **Examples**:
+  - `/worldborder:toggle` - Toggle all dimensions
+  - `/worldborder:toggle overworld` - Toggle only Overworld
+  - `/worldborder:toggle nether` - Toggle only Nether
 
 ### `/worldborder:status`
 Shows current border configuration for all dimensions.
 - **Example**: `/worldborder:status`
+
+### `/worldborder:warn <on|off>`
+Toggles the warning system on or off globally.
+- **Examples**:
+  - `/worldborder:warn on` - Enable warning messages
+  - `/worldborder:warn off` - Disable warning messages
+
+### `/worldborder:warndistance <distance>`
+Sets the warning distance in blocks from the border.
+- **distance**: Integer value (1-1000 blocks)
+- **Example**: `/worldborder:warndistance 75` - Warn when within 75 blocks of border
 
 ## Configuration
 
@@ -71,13 +92,6 @@ Players with the `admin` tag bypass all border restrictions:
 2. **Distance Calculation**: Uses maximum of absolute X or Z coordinates
 3. **Dimension Detection**: Automatically detects player's current dimension
 4. **Safe Teleportation**: Moves players to border edge minus 5 blocks for safety
-
-### Data Storage
-Settings are stored as world dynamic properties:
-- `worldBorderSizes`: JSON object with per-dimension sizes
-- `worldBorderEnabled`: Global enable/disable state
-- `worldBorderWarningDistance`: Warning threshold distance
-- `worldBorderWarningEnabled`: Warning system toggle
 
 ### Compatibility
 - **Server Performance**: Minimal impact with 1-second checking interval
@@ -118,27 +132,6 @@ BedrockWorldBorder_BP/
 │   └── main.js            # Core addon logic
 └── README.md              # This documentation
 ```
-
-### Extending the Addon
-The code is modular and can be extended to add:
-- Additional command parameters for dimension-specific settings
-- Custom warning messages per dimension
-- Integration with other server management addons
-- Advanced permission systems
-
-## License
-
-This addon is provided as-is for educational and server management purposes. Feel free to modify and distribute according to your needs.
-
-## Support
-
-For issues, feature requests, or questions:
-1. Check the troubleshooting section above
-2. Review game logs for script errors
-3. Verify all requirements are met
-4. Test with minimal addon setup to isolate issues
-
----
 
 **Version**: 2.0  
 **Last Updated**: 2025  
