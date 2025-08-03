@@ -11,7 +11,8 @@ A comprehensive world border addon for Minecraft Bedrock Edition that prevents p
 - **Granular Control**: Set borders per-dimension or all at once with flexible commands
 - **Safe Teleportation**: Players are teleported back to the border edge at their current Y-level
 - **Configurable Warning System**: Adjustable warning distance and toggle on/off capability
-- **Admin Exemption**: Players with 'admin' tag can pass through borders
+- **Admin Exemption**: Players with 'admin' tag can pass through borders with notification
+- **Admin Awareness**: Admins see distance notifications when outside borders
 - **Persistent Settings**: All configuration saves between server restarts with per-dimension tracking
 
 ### Performance
@@ -20,52 +21,73 @@ A comprehensive world border addon for Minecraft Bedrock Edition that prevents p
 
 ## Installation
 
-1. **Download** the addon files
-2. **Copy** the `BedrockWorldBorder_BP` folder to your world's `behavior_packs` directory
+### Easy Installation (Recommended)
+1. **Download** the latest `.mcpack` file from [GitHub Releases](https://github.com/mygen/BedrockWorldBorder/releases)
+2. **Double-click** the `.mcpack` file to automatically import it into Minecraft
+3. **Create a new world** or **edit an existing world**
+4. **Enable** the BedrockWorldBorder behavior pack in world settings
+5. **Activate** the "Beta APIs" experiment in world settings
+6. **Start** your world
+
+### Manual Installation
+1. **Download** and extract the addon files from the repository
+2. **Copy** the `BedrockWorldBorder_BP` folder to your world's `behavior_packs` directory:
+   - **Windows**: `%LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\behavior_packs\`
+   - **Android**: `/storage/emulated/0/games/com.mojang/behavior_packs/`
+   - **iOS**: `Apps/Minecraft/Documents/games/com.mojang/behavior_packs/`
 3. **Enable** the behavior pack in your world settings
-4. **Activate** the "Beta APIs" experiment in your world settings
+4. **Activate** the "Beta APIs" experiment in world settings
 5. **Restart** your world/server
 
 ### Requirements
 - Minecraft Bedrock Edition 1.21.0+
 - Beta APIs experiment enabled
 - @minecraft/server 2.1.0-beta
+- **Cheats enabled** (temporarily) for initial admin setup
+
+### Admin Setup (One-Time)
+1. **Enable cheats** in world settings
+2. **Run command**: `/tag @s add admin` to give yourself admin privileges
+3. **Optional**: Disable cheats again - admin tag persists and addon works normally
+4. **Note**: Border protection works for all players regardless of cheats setting
 
 ## Commands
 
-All commands require Op permissions and use the `/worldborder:` prefix:
+Commands use chat-based system with `!wb` prefix. Admin commands require the 'admin' tag.
 
-### `/worldborder:set <dimension> <size>`
+### Available to Everyone
+- `!wb help` - Show command help and usage
+- `!wb status` - Show current border configuration
+
+### Admin Commands (require 'admin' tag)
+
+### `!wb set <dimension> <size>`
 Sets the border size for specified dimension(s).
 - **dimension**: `all`, `overworld`, `nether`, or `end`
 - **size**: Integer value (minimum 100 blocks)
 - **Examples**: 
-  - `/worldborder:set all 1500` - Set all dimensions to 1500 blocks
-  - `/worldborder:set overworld 2000` - Set only Overworld to 2000 blocks
-  - `/worldborder:set nether 500` - Set only Nether to 500 blocks
+  - `!wb set all 1500` - Set all dimensions to 1500 blocks
+  - `!wb set overworld 2000` - Set only Overworld to 2000 blocks
+  - `!wb set nether 500` - Set only Nether to 500 blocks
 
-### `/worldborder:toggle [dimension]`
+### `!wb toggle [dimension]`
 Toggles the world border enforcement on/off for specified dimension(s).
 - **dimension**: `all` (default), `overworld`, `nether`, or `end`
 - **Examples**:
-  - `/worldborder:toggle` - Toggle all dimensions
-  - `/worldborder:toggle overworld` - Toggle only Overworld
-  - `/worldborder:toggle nether` - Toggle only Nether
+  - `!wb toggle` - Toggle all dimensions
+  - `!wb toggle overworld` - Toggle only Overworld
+  - `!wb toggle nether` - Toggle only Nether
 
-### `/worldborder:status`
-Shows current border configuration for all dimensions.
-- **Example**: `/worldborder:status`
-
-### `/worldborder:warn <on|off>`
+### `!wb warn <on|off>`
 Toggles the warning system on or off globally.
 - **Examples**:
-  - `/worldborder:warn on` - Enable warning messages
-  - `/worldborder:warn off` - Disable warning messages
+  - `!wb warn on` - Enable warning messages
+  - `!wb warn off` - Disable warning messages
 
-### `/worldborder:warndistance <distance>`
+### `!wb warndistance <distance>`
 Sets the warning distance in blocks from the border.
 - **distance**: Integer value (1-1000 blocks)
-- **Example**: `/worldborder:warndistance 75` - Warn when within 75 blocks of border
+- **Example**: `!wb warndistance 75` - Warn when within 75 blocks of border
 
 ## Configuration
 
@@ -79,8 +101,13 @@ Sets the warning distance in blocks from the border.
 - **Warning Message**: Shows remaining distance in action bar
 - **Configurable**: Can be disabled or distance modified
 
-### Admin Exemption
-Players with the `admin` tag bypass all border restrictions:
+### Admin System
+Players with the `admin` tag have special privileges:
+- **Border Bypass**: Can travel beyond borders without being teleported
+- **Admin Notifications**: See distance alerts when outside borders (`[ADMIN] Outside world border by X blocks`)
+- **Command Access**: Can use all admin commands
+
+To grant admin privileges (requires cheats enabled):
 ```
 /tag @s add admin
 ```
@@ -104,23 +131,13 @@ Players with the `admin` tag bypass all border restrictions:
 
 **Commands not working**
 - Ensure Beta APIs experiment is enabled
-- Verify you have Game Director permissions
+- Verify you have the 'admin' tag for admin commands
 - Check addon is properly installed in behavior_packs folder
 
 **Players not being teleported**
-- Confirm border is enabled with `/worldborder:status`
+- Confirm border is enabled with `!wb status`
 - Check if player has 'admin' tag (they bypass borders)
 - Verify addon loaded successfully in game logs
-
-**Settings not saving**
-- Ensure world has write permissions
-- Check for script errors in game logs
-- Verify @minecraft/server version compatibility
-
-### Performance Notes
-- Checking only occurs in dimensions with active players
-- No performance impact when no players are near borders
-- Teleportation includes fallback methods for API compatibility
 
 ## Development
 

@@ -37,3 +37,4 @@ development_resource_packs/
 # Testing files
 test-worlds/
 *.mcworld
+Releases/

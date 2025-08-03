@@ -1,4 +1,4 @@
-import { world, system, CommandPermissionLevel, CustomCommandParamType } from '@minecraft/server';
+import { world, system } from '@minecraft/server';
 
 class WorldBorderManager {
     constructor() {
@@ -23,107 +23,125 @@ class WorldBorderManager {
         this.borderSizes = { ...this.defaultBorderSizes };
         this.borderEnabled = { ...this.defaultBorderEnabled };
 
+        this.registerChatCommands();
+
         system.runInterval(() => {
             this.checkAllPlayers();
         }, 20);
     }
 
-    registerCommands(customCommandRegistry) {
-        try {
-            // Register enums first
-            customCommandRegistry.registerEnum("worldborder:dimensions", ["all", "overworld", "nether", "end"]);
-            customCommandRegistry.registerEnum("worldborder:toggle", ["on", "off"]);
+    registerChatCommands() {
+        world.beforeEvents.chatSend.subscribe((event) => {
+            this.handleChatCommand(event);
+        });
+    }
 
-            // /worldborder:set <dimension> <size>
-            customCommandRegistry.registerCommand(
-                {
-                    name: "worldborder:set",
-                    description: "Set the world border size for specified dimension(s)",
-                    permissionLevel: CommandPermissionLevel.GameDirectors,
-                    mandatoryParameters: [
-                        {
-                            name: "worldborder:dimensions",
-                            type: CustomCommandParamType.Enum,
-                        },
-                        {
-                            name: "size",
-                            type: CustomCommandParamType.Integer,
-                        },
-                    ],
-                },
-                (origin, dimension, size) => {
-                    this.handleSetSize(dimension, size);
-                }
-            );
+    handleChatCommand(event) {
+        const message = event.message;
+        const player = event.sender;
 
-            // /worldborder:toggle [dimension]
-            customCommandRegistry.registerCommand(
-                {
-                    name: "worldborder:toggle",
-                    description: "Toggle the world border on/off for specified dimension(s)",
-                    permissionLevel: CommandPermissionLevel.GameDirectors,
-                    optionalParameters: [
-                        {
-                            name: "worldborder:dimensions",
-                            type: CustomCommandParamType.Enum,
-                        },
-                    ],
-                },
-                (origin, dimension) => {
-                    this.handleToggle(dimension || "all");
-                }
-            );
+        if (!message.startsWith('!wb')) return;
 
-            // /worldborder:status
-            customCommandRegistry.registerCommand(
-                {
-                    name: "worldborder:status",
-                    description: "Show world border status",
-                    permissionLevel: CommandPermissionLevel.GameDirectors,
-                },
-                (origin) => {
-                    this.handleStatus();
-                }
-            );
+        event.cancel = true;
 
-            // /worldborder:warn <on|off>
-            customCommandRegistry.registerCommand(
-                {
-                    name: "worldborder:warn",
-                    description: "Toggle warning system on/off",
-                    permissionLevel: CommandPermissionLevel.GameDirectors,
-                    mandatoryParameters: [
-                        {
-                            name: "worldborder:toggle",
-                            type: CustomCommandParamType.Enum,
-                        },
-                    ],
-                },
-                (origin, toggle) => {
-                    this.handleWarnToggle(toggle);
-                }
-            );
+        const args = message.slice(3).trim().split(' ');
+        const subcommand = args[0]?.toLowerCase() || 'help';
 
-            // /worldborder:warndistance <distance>
-            customCommandRegistry.registerCommand(
-                {
-                    name: "worldborder:warndistance",
-                    description: "Set warning distance in blocks",
-                    permissionLevel: CommandPermissionLevel.GameDirectors,
-                    mandatoryParameters: [
-                        {
-                            name: "distance",
-                            type: CustomCommandParamType.Integer,
-                        },
-                    ],
-                },
-                (origin, distance) => {
-                    this.handleWarnDistance(distance);
-                }
-            );
+        // Allow basic status command for everyone, restrict admin commands
+        const adminCommands = ['set', 'toggle', 'warn', 'warndistance'];
+        if (adminCommands.includes(subcommand) && !player.hasTag('admin')) {
+            player.sendMessage('§cAdmin commands require the "admin" tag. Use !wb help for available commands.');
+            player.sendMessage('§eOr have an admin run: /tag @s add admin');
+            return;
+        }
 
-        } catch (error) {
-            console.error('Failed to register custom commands:', error);
+        switch (subcommand) {
+            case 'set':
+                this.handleChatSetSize(player, args);
+                break;
+            case 'toggle':
+                this.handleChatToggle(player, args);
+                break;
+            case 'status':
+                this.handleChatStatus(player);
+                break;
+            case 'warn':
+                this.handleChatWarn(player, args);
+                break;
+            case 'warndistance':
+                this.handleChatWarnDistance(player, args);
+                break;
+            case 'help':
+            default:
+                this.showHelp(player);
+                break;
+        }
+    }
+
+    handleChatSetSize(player, args) {
+        if (args.length < 3) {
+            player.sendMessage('§eUsage: !wb set <all|overworld|nether|end> <size>');
+            return;
+        }
+
+        const dimension = args[1].toLowerCase();
+        const size = parseInt(args[2]);
+
+        this.handleSetSize(dimension, size);
+    }
+
+    handleChatToggle(player, args) {
+        const dimension = args[1]?.toLowerCase() || 'all';
+        this.handleToggle(dimension);
+    }
+
+    handleChatStatus(player) {
+        this.handleStatus();
+    }
+
+    handleChatWarn(player, args) {
+        if (args.length < 2) {
+            player.sendMessage('§eUsage: !wb warn <on|off>');
+            return;
+        }
+
+        const toggle = args[1].toLowerCase();
+        if (toggle !== 'on' && toggle !== 'off') {
+            player.sendMessage('§cInvalid option. Use "on" or "off"');
+            return;
+        }
+
+        this.handleWarnToggle(toggle);
+    }
+
+    handleChatWarnDistance(player, args) {
+        if (args.length < 2) {
+            player.sendMessage('§eUsage: !wb warndistance <distance>');
+            return;
+        }
+
+        const distance = parseInt(args[1]);
+        if (isNaN(distance)) {
+            player.sendMessage('§cInvalid distance. Must be a number.');
+            return;
+        }
+
+        this.handleWarnDistance(distance);
+    }
+
+    showHelp(player) {
+        player.sendMessage('§e--- World Border Commands ---');
+        player.sendMessage('§a!wb status §7- Show current settings (everyone)');
+        player.sendMessage('§a!wb help §7- Show this help (everyone)');
+        player.sendMessage('§c--- Admin Commands (require "admin" tag) ---');
+        player.sendMessage('§c!wb set <all|overworld|nether|end> <size>');
+        player.sendMessage('§c!wb toggle [all|overworld|nether|end]');
+        player.sendMessage('§c!wb warn <on|off>');
+        player.sendMessage('§c!wb warndistance <distance>');
+        
+        if (!player.hasTag('admin')) {
+            player.sendMessage('§eYou need the "admin" tag for admin commands.');
+            player.sendMessage('§eHave someone with cheats run: §f/tag @s add admin');
         }
     }
     
@@ -272,11 +290,6 @@ class WorldBorderManager {
     }
 
     checkPlayerPosition(player) {
-        // Skip admin players
-        if (player.hasTag('admin')) {
-            return;
-        }
-
         const location = player.location;
         const x = location.x;
         const z = location.z;
@@ -291,6 +304,15 @@ class WorldBorderManager {
         const borderSize = this.borderSizes[dimension] || this.borderSizes['overworld'];
         const maxDistance = Math.max(Math.abs(x), Math.abs(z));
 
+        // Handle admin players - show warnings but don't teleport
+        if (player.hasTag('admin')) {
+            if (maxDistance > borderSize) {
+                player.onScreenDisplay.setActionBar(`§6[ADMIN] Outside world border by ${Math.round(maxDistance - borderSize)} blocks`);
+            }
+            return;
+        }
+
+        // Handle regular players
         if (this.warningEnabled && maxDistance > borderSize - this.warningDistance && maxDistance <= borderSize) {
             player.onScreenDisplay.setActionBar(`§eWarning: Approaching world border (${Math.round(borderSize - maxDistance)} blocks remaining)`);
         }
@@ -357,10 +379,6 @@ class WorldBorderManager {
 }
 
 const worldBorderManager = new WorldBorderManager();
-
-system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
-    worldBorderManager.registerCommands(customCommandRegistry);
-});
 
 system.runTimeout(() => {
     worldBorderManager.loadSettings();
