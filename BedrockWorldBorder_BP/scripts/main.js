@@ -1,344 +1,249 @@
-import { world, system } from '@minecraft/server';
+import { 
+    world, 
+    system,
+    CommandPermissionLevel,
+    CustomCommandParamType
+} from '@minecraft/server';
 
 class WorldBorderManager {
     constructor() {
-        this.defaultBorderSizes = {
-            'overworld': 1000,
-            'nether': 500,
-            'the_end': 1000
+        this.config = {
+            overworld: { enabled: false, size: 1000, warning: true, warnDistance: 50 },
+            nether: { enabled: false, size: 1000, warning: true, warnDistance: 50 },
+            end: { enabled: false, size: 1000, warning: true, warnDistance: 50 }
         };
-        this.defaultBorderEnabled = {
-            'overworld': true,
-            'nether': true,
-            'the_end': true
-        };
-        this.adminPrefix = '!';
-        this.warningDistance = 50;
-        this.warningEnabled = true;
-        
+        this.globalWarning = true;
+        this.globalWarnDistance = 50;
+        this.playerWarnings = new Map();
         this.init();
     }
 
     init() {
-        this.borderSizes = { ...this.defaultBorderSizes };
-        this.borderEnabled = { ...this.defaultBorderEnabled };
-
-        this.registerChatCommands();
-
-        system.runInterval(() => {
-            this.checkAllPlayers();
+        // Delay initialization to ensure world is ready
+        system.runTimeout(() => {
+            this.loadConfig();
+            this.startPlayerMonitoring();
         }, 20);
     }
 
-    registerChatCommands() {
-        world.beforeEvents.chatSend.subscribe((event) => {
-            this.handleChatCommand(event);
-        });
-    }
-
-    handleChatCommand(event) {
-        const message = event.message;
-        const player = event.sender;
-
-        if (!message.startsWith('!wb')) return;
-
-        event.cancel = true;
-
-        const args = message.slice(3).trim().split(' ');
-        const subcommand = args[0]?.toLowerCase() || 'help';
-
-        // Allow basic status command for everyone, restrict admin commands
-        const adminCommands = ['set', 'toggle', 'warn', 'warndistance'];
-        if (adminCommands.includes(subcommand) && !player.hasTag('admin')) {
-            player.sendMessage('§cAdmin commands require the "admin" tag. Use !wb help for available commands.');
-            player.sendMessage('§eOr have an admin run: /tag @s add admin');
-            return;
-        }
-
-        switch (subcommand) {
-            case 'set':
-                this.handleChatSetSize(player, args);
-                break;
-            case 'toggle':
-                this.handleChatToggle(player, args);
-                break;
-            case 'status':
-                this.handleChatStatus(player);
-                break;
-            case 'warn':
-                this.handleChatWarn(player, args);
-                break;
-            case 'warndistance':
-                this.handleChatWarnDistance(player, args);
-                break;
-            case 'help':
-            default:
-                this.showHelp(player);
-                break;
+    loadConfig() {
+        try {
+            const savedConfig = world.getDynamicProperty('worldBorderConfig');
+            if (savedConfig) {
+                const parsedConfig = JSON.parse(savedConfig);
+                this.config = { ...this.config, ...parsedConfig };
+            }
+            
+            const globalWarning = world.getDynamicProperty('worldBorderGlobalWarning');
+            if (globalWarning !== undefined) {
+                this.globalWarning = globalWarning;
+            }
+            
+            const globalWarnDistance = world.getDynamicProperty('worldBorderGlobalWarnDistance');
+            if (globalWarnDistance !== undefined) {
+                this.globalWarnDistance = globalWarnDistance;
+            }
+        } catch (error) {
+            console.warn('Failed to load world border config, using defaults');
         }
     }
 
-    handleChatSetSize(player, args) {
-        if (args.length < 3) {
-            player.sendMessage('§eUsage: !wb set <all|overworld|nether|end> <size>');
-            return;
+    saveConfig() {
+        try {
+            world.setDynamicProperty('worldBorderConfig', JSON.stringify(this.config));
+            world.setDynamicProperty('worldBorderGlobalWarning', this.globalWarning);
+            world.setDynamicProperty('worldBorderGlobalWarnDistance', this.globalWarnDistance);
+        } catch (error) {
+            console.warn('Failed to save world border config');
         }
-
-        const dimension = args[1].toLowerCase();
-        const size = parseInt(args[2]);
-
-        this.handleSetSize(dimension, size);
     }
 
-    handleChatToggle(player, args) {
-        const dimension = args[1]?.toLowerCase() || 'all';
-        this.handleToggle(dimension);
+    getDimensionKey(dimensionId) {
+        if (dimensionId.includes('nether')) return 'nether';
+        if (dimensionId.includes('end')) return 'end';
+        return 'overworld';
     }
 
-    handleChatStatus(player) {
-        this.handleStatus();
-    }
-
-    handleChatWarn(player, args) {
-        if (args.length < 2) {
-            player.sendMessage('§eUsage: !wb warn <on|off>');
-            return;
-        }
-
-        const toggle = args[1].toLowerCase();
-        if (toggle !== 'on' && toggle !== 'off') {
-            player.sendMessage('§cInvalid option. Use "on" or "off"');
-            return;
-        }
-
-        this.handleWarnToggle(toggle);
-    }
-
-    handleChatWarnDistance(player, args) {
-        if (args.length < 2) {
-            player.sendMessage('§eUsage: !wb warndistance <distance>');
-            return;
-        }
-
-        const distance = parseInt(args[1]);
-        if (isNaN(distance)) {
-            player.sendMessage('§cInvalid distance. Must be a number.');
-            return;
-        }
-
-        this.handleWarnDistance(distance);
+    hasGameDirectorPermission(player) {
+        return player.playerPermissionLevel >= 2; // GameDirector level or higher
     }
 
     showHelp(player) {
-        player.sendMessage('§e--- World Border Commands ---');
-        player.sendMessage('§a!wb status §7- Show current settings (everyone)');
-        player.sendMessage('§a!wb help §7- Show this help (everyone)');
-        player.sendMessage('§c--- Admin Commands (require "admin" tag) ---');
-        player.sendMessage('§c!wb set <all|overworld|nether|end> <size>');
-        player.sendMessage('§c!wb toggle [all|overworld|nether|end]');
-        player.sendMessage('§c!wb warn <on|off>');
-        player.sendMessage('§c!wb warndistance <distance>');
+        const isGameDirector = this.hasGameDirectorPermission(player);
+        player.sendMessage('§6=== World Border Commands ===');
+        player.sendMessage('§e/worldborder:help §7- Show this help message');
+        player.sendMessage('§e/worldborder:status §7- Show current border status');
         
-        if (!player.hasTag('admin')) {
-            player.sendMessage('§eYou need the "admin" tag for admin commands.');
-            player.sendMessage('§eHave someone with cheats run: §f/tag @s add admin');
-        }
-    }
-    
-
-    loadSettings() {
-        try {
-            const savedBorderSizes = world.getDynamicProperty('worldBorderSizes');
-            const savedBorderEnabled = world.getDynamicProperty('worldBorderEnabled');
-            const savedWarningDistance = world.getDynamicProperty('worldBorderWarningDistance');
-            const savedWarningEnabled = world.getDynamicProperty('worldBorderWarningEnabled');
-            
-            this.borderSizes = savedBorderSizes !== undefined ? JSON.parse(savedBorderSizes) : { ...this.defaultBorderSizes };
-            
-            // Handle legacy boolean or new object format
-            if (savedBorderEnabled !== undefined) {
-                const parsed = JSON.parse(savedBorderEnabled);
-                if (typeof parsed === 'boolean') {
-                    // Legacy format - apply to all dimensions
-                    this.borderEnabled = {
-                        'overworld': parsed,
-                        'nether': parsed,
-                        'the_end': parsed
-                    };
-                } else {
-                    // New object format
-                    this.borderEnabled = parsed;
-                }
-            } else {
-                this.borderEnabled = { ...this.defaultBorderEnabled };
-            }
-            
-            this.warningDistance = savedWarningDistance !== undefined ? savedWarningDistance : 50;
-            this.warningEnabled = savedWarningEnabled !== undefined ? savedWarningEnabled : true;
-            
-        } catch (error) {
-            console.warn(`Failed to load world border settings: ${error}`);
-            this.borderSizes = { ...this.defaultBorderSizes };
-            this.borderEnabled = { ...this.defaultBorderEnabled };
-            this.warningDistance = 50;
-            this.warningEnabled = true;
+        if (isGameDirector) {
+            player.sendMessage('§e/worldborder:size <all|overworld|nether|end> <size> §7- Set border size');
+            player.sendMessage('§e/worldborder:toggle <all|overworld|nether|end> §7- Toggle border on/off');
+            player.sendMessage('§e/worldborder:warning <on|off> §7- Toggle warning messages');
+            player.sendMessage('§e/worldborder:warndistance <distance> §7- Set warning distance');
+        } else {
+            player.sendMessage('§7Additional commands available for GameDirector+ permission level');
         }
     }
 
-    saveSettings() {
-        try {
-            world.setDynamicProperty('worldBorderSizes', JSON.stringify(this.borderSizes));
-            world.setDynamicProperty('worldBorderEnabled', JSON.stringify(this.borderEnabled));
-            world.setDynamicProperty('worldBorderWarningDistance', this.warningDistance);
-            world.setDynamicProperty('worldBorderWarningEnabled', this.warningEnabled);
-        } catch (error) {
-            console.warn(`Failed to save world border settings: ${error}`);
+    showStatus(player) {
+        player.sendMessage('§6=== World Border Status ===');
+        
+        for (const [dim, config] of Object.entries(this.config)) {
+            const statusColor = config.enabled ? '§a' : '§c';
+            const statusText = config.enabled ? 'Enabled' : 'Disabled';
+            const sizeColor = '§b';
+            
+            player.sendMessage(`§e${dim.charAt(0).toUpperCase() + dim.slice(1)}: ${statusColor}${statusText} §7| Size: ${sizeColor}${config.size}`);
         }
+        
+        const warningStatus = this.globalWarning ? '§aOn' : '§cOff';
+        player.sendMessage(`§eWarnings: ${warningStatus} §7| Distance: §b${this.globalWarnDistance}`);
     }
 
-    handleSetSize(dimension, size) {
+    setSize(player, dimension, size) {
+        if (isNaN(size) || size < 1) {
+            player.sendMessage('§cSize must be a positive number.');
+            return;
+        }
+
         if (size < 100) {
-            world.sendMessage('§cInvalid size. Minimum size is 100 blocks.');
+            player.sendMessage('§cWorld border size must be at least 100 blocks.');
             return;
         }
 
-        const dimensionMap = {
-            'overworld': 'overworld',
-            'nether': 'nether', 
-            'end': 'the_end'
-        };
-
-        if (dimension === 'all') {
-            Object.keys(this.borderSizes).forEach(dim => {
-                this.borderSizes[dim] = size;
-            });
-            world.sendMessage(`§aAll dimension borders set to ${size} blocks`);
-        } else {
-            const targetDim = dimensionMap[dimension] || dimension;
-            if (this.borderSizes[targetDim] !== undefined) {
-                this.borderSizes[targetDim] = size;
-                world.sendMessage(`§a${dimension.charAt(0).toUpperCase() + dimension.slice(1)} border set to ${size} blocks`);
-            } else {
-                world.sendMessage(`§cUnknown dimension: ${dimension}`);
-                return;
-            }
-        }
-        
-        this.saveSettings();
-    }
-
-    handleToggle(dimension) {
-        const dimensionMap = {
-            'overworld': 'overworld',
-            'nether': 'nether', 
-            'end': 'the_end'
-        };
-
-        if (dimension === 'all') {
-            const newState = !this.borderEnabled['overworld']; // Use overworld as reference
-            Object.keys(this.borderEnabled).forEach(dim => {
-                this.borderEnabled[dim] = newState;
-            });
-            world.sendMessage(`§aAll dimension borders ${newState ? 'enabled' : 'disabled'}`);
-        } else {
-            const targetDim = dimensionMap[dimension] || dimension;
-            
-            if (this.borderEnabled[targetDim] !== undefined) {
-                this.borderEnabled[targetDim] = !this.borderEnabled[targetDim];
-                world.sendMessage(`§a${dimension.charAt(0).toUpperCase() + dimension.slice(1)} border ${this.borderEnabled[targetDim] ? 'enabled' : 'disabled'}`);
-            } else {
-                world.sendMessage(`§cUnknown dimension: ${dimension}`);
-                return;
-            }
-        }
-        
-        this.saveSettings();
-    }
-
-    handleWarnToggle(toggle) {
-        this.warningEnabled = (toggle === 'on');
-        this.saveSettings();
-        world.sendMessage(`§aWarning system ${this.warningEnabled ? 'enabled' : 'disabled'}`);
-    }
-
-    handleWarnDistance(distance) {
-        if (distance < 1 || distance > 1000) {
-            world.sendMessage('§cInvalid distance. Must be between 1 and 1000 blocks.');
+        // Check if border size would be smaller than warn distance
+        if (this.globalWarnDistance >= size) {
+            player.sendMessage(`§cBorder size (${size}) must be greater than warning distance (${this.globalWarnDistance}).`);
             return;
         }
-        
-        this.warningDistance = distance;
-        this.saveSettings();
-        world.sendMessage(`§aWarning distance set to ${distance} blocks`);
-    }
 
-    handleStatus() {
-        // Beta API limitation - can't access player directly, use world message
-        world.sendMessage(`§eWorld Border Status:`);
-        world.sendMessage(`§e- Border Sizes & Status:`);
-        world.sendMessage(`§e  - Overworld: ${this.borderSizes['overworld']} blocks (${this.borderEnabled['overworld'] ? 'Enabled' : 'Disabled'})`);
-        world.sendMessage(`§e  - Nether: ${this.borderSizes['nether']} blocks (${this.borderEnabled['nether'] ? 'Enabled' : 'Disabled'})`);
-        world.sendMessage(`§e  - The End: ${this.borderSizes['the_end']} blocks (${this.borderEnabled['the_end'] ? 'Enabled' : 'Disabled'})`);
-        world.sendMessage(`§e- Warning System: ${this.warningEnabled ? 'Enabled (' + this.warningDistance + ' blocks)' : 'Disabled'}`);
-        world.sendMessage(`§e- Admin Exemption: Players with 'admin' tag bypass border`);
-    }
-
-    checkAllPlayers() {
-        for (const player of world.getAllPlayers()) {
-            this.checkPlayerPosition(player);
+        if (dimension === 'all') {
+            for (const dim of ['overworld', 'nether', 'end']) {
+                this.config[dim].size = size;
+            }
+            player.sendMessage(`§aSet world border size to §b${size} §afor all dimensions.`);
+        } else if (this.config[dimension]) {
+            this.config[dimension].size = size;
+            player.sendMessage(`§aSet world border size to §b${size} §afor ${dimension}.`);
+        } else {
+            player.sendMessage('§cInvalid dimension. Use: all, overworld, nether, or end.');
+            return;
         }
+
+        this.saveConfig();
+    }
+
+    toggleBorder(player, dimension) {
+        if (dimension === 'all') {
+            const newState = !this.config.overworld.enabled;
+            for (const dim of ['overworld', 'nether', 'end']) {
+                this.config[dim].enabled = newState;
+            }
+            const statusText = newState ? '§aenabled' : '§cdisabled';
+            player.sendMessage(`§aWorld border ${statusText} §afor all dimensions.`);
+        } else if (this.config[dimension]) {
+            this.config[dimension].enabled = !this.config[dimension].enabled;
+            const statusText = this.config[dimension].enabled ? '§aenabled' : '§cdisabled';
+            player.sendMessage(`§aWorld border ${statusText} §afor ${dimension}.`);
+        } else {
+            player.sendMessage('§cInvalid dimension. Use: all, overworld, nether, or end.');
+            return;
+        }
+
+        this.saveConfig();
+    }
+
+    setWarning(player, enabled) {
+        this.globalWarning = enabled;
+        const statusText = enabled ? '§aenabled' : '§cdisabled';
+        player.sendMessage(`§aWorld border warnings ${statusText}.`);
+        this.saveConfig();
+    }
+
+    setWarnDistance(player, distance) {
+        if (isNaN(distance) || distance < 0) {
+            player.sendMessage('§cWarning distance must be a non-negative number.');
+            return;
+        }
+
+        if (distance > 50) {
+            player.sendMessage('§cWarning distance cannot be greater than 50 blocks.');
+            return;
+        }
+
+        // Check if warn distance is greater than any active border size
+        const activeBorders = Object.entries(this.config).filter(([_, config]) => config.enabled);
+        for (const [dim, config] of activeBorders) {
+            if (distance >= config.size) {
+                player.sendMessage(`§cWarning distance (${distance}) must be less than ${dim} border size (${config.size}).`);
+                return;
+            }
+        }
+
+        this.globalWarnDistance = distance;
+        player.sendMessage(`§aSet warning distance to §b${distance} §ablocks.`);
+        this.saveConfig();
+    }
+
+    startPlayerMonitoring() {
+        system.runInterval(() => {
+            for (const player of world.getPlayers()) {
+                this.checkPlayerPosition(player);
+            }
+        }, 10);
     }
 
     checkPlayerPosition(player) {
         const location = player.location;
-        const x = location.x;
-        const z = location.z;
-        const dimension = player.dimension.id;
+        const dimensionKey = this.getDimensionKey(player.dimension.id);
+        const borderConfig = this.config[dimensionKey];
 
-        // Check if border is enabled for this dimension
-        const dimensionEnabled = this.borderEnabled[dimension] !== undefined ? this.borderEnabled[dimension] : this.borderEnabled['overworld'];
-        if (!dimensionEnabled) {
-            return;
-        }
+        if (!borderConfig.enabled) return;
 
-        const borderSize = this.borderSizes[dimension] || this.borderSizes['overworld'];
-        const maxDistance = Math.max(Math.abs(x), Math.abs(z));
+        const maxDistance = borderConfig.size;
+        const x = Math.abs(location.x);
+        const z = Math.abs(location.z);
+        const maxCoord = Math.max(x, z);
+        const isGameDirector = this.hasGameDirectorPermission(player);
 
-        // Handle admin players - show warnings but don't teleport
-        if (player.hasTag('admin')) {
-            if (maxDistance > borderSize) {
-                player.onScreenDisplay.setActionBar(`§6[ADMIN] Outside world border by ${Math.round(maxDistance - borderSize)} blocks`);
+        if (maxCoord > maxDistance) {
+            if (isGameDirector) {
+                const distanceBeyond = Math.floor(maxCoord - maxDistance);
+                player.onScreenDisplay.setActionBar(`§cBeyond border: §b${distanceBeyond} §cblocks`);
+            } else {
+                this.teleportPlayerBack(player, location, maxDistance);
             }
-            return;
-        }
-
-        // Handle regular players
-        if (this.warningEnabled && maxDistance > borderSize - this.warningDistance && maxDistance <= borderSize) {
-            player.onScreenDisplay.setActionBar(`§eWarning: Approaching world border (${Math.round(borderSize - maxDistance)} blocks remaining)`);
-        }
-
-        if (maxDistance > borderSize) {
-            this.teleportPlayerToSafety(player, borderSize);
+        } else if (this.globalWarning && maxCoord > (maxDistance - this.globalWarnDistance)) {
+            const distanceToBarrier = Math.floor(maxDistance - maxCoord);
+            player.onScreenDisplay.setActionBar(`§eApproaching world border: §c${distanceToBarrier} §eblocks remaining`);
         }
     }
 
-    teleportPlayerToSafety(player, borderSize) {
-        const location = player.location;
-        let x = location.x;
-        let z = location.z;
-        const y = location.y;
+    teleportPlayerBack(player, currentLocation, maxDistance) {
+        const x = currentLocation.x;
+        const z = currentLocation.z;
+        const y = currentLocation.y;
 
-        if (Math.abs(x) > borderSize) {
-            x = Math.sign(x) * (borderSize - 5);
+        let newX = x;
+        let newZ = z;
+
+        if (Math.abs(x) > maxDistance) {
+            newX = x > 0 ? maxDistance - 1 : -maxDistance + 1;
         }
-        if (Math.abs(z) > borderSize) {
-            z = Math.sign(z) * (borderSize - 5);
+        if (Math.abs(z) > maxDistance) {
+            newZ = z > 0 ? maxDistance - 1 : -maxDistance + 1;
         }
+
+        // Find safe Y level at the teleport location
+        const safeY = this.findSafeY(player, newX, newZ, y);
 
         try {
-            player.teleport({ x: x, y: y, z: z });
-            player.onScreenDisplay.setActionBar('§cYou have reached the world border and been teleported back!');
+            player.teleport({ x: newX, y: safeY, z: newZ }, { 
+                dimension: player.dimension,
+                facingLocation: { x: 0, y: safeY, z: 0 }
+            });
+            player.onScreenDisplay.setActionBar('§cYou have reached the world border!');
             
+            // Play sound effect
             try {
                 player.playSound('random.orb', {
                     volume: 0.5,
@@ -348,40 +253,216 @@ class WorldBorderManager {
                 // Sound failed silently
             }
         } catch (error) {
-            console.warn(`Failed to teleport player ${player.name}: ${error}`);
-            // Try alternative teleport method
-            try {
-                player.runCommand(`tp @s ${x} ${y} ${z}`);
-                player.onScreenDisplay.setActionBar('§cYou have reached the world border and been teleported back!');
-            } catch (cmdError) {
-                console.warn(`Failed alternative teleport: ${cmdError}`);
-            }
+            // Silently fail teleport
         }
     }
 
-    findSafeY(x, z, currentY) {
-        // Simplified approach - just use a reasonable Y level
-        // The complex block checking might not work reliably in Beta API
-        
-        // If player is underground, bring them up
-        if (currentY < 64) {
-            return 70;
-        }
-        
-        // If player is at reasonable height, keep them there
-        if (currentY >= 64 && currentY <= 200) {
+    findSafeY(player, x, z, currentY) {
+        try {
+            const dimension = player.dimension;
+            const startY = Math.floor(currentY);
+            
+            // First, try the current Y level - if it's air or we can't check it (void/sky), stay there!
+            try {
+                const block = dimension.getBlock({ x: Math.floor(x), y: startY, z: Math.floor(z) });
+                const blockAbove = dimension.getBlock({ x: Math.floor(x), y: startY + 1, z: Math.floor(z) });
+                
+                if (block && blockAbove && 
+                    block.typeId === 'minecraft:air' && 
+                    blockAbove.typeId === 'minecraft:air') {
+                    return startY; // Stay at current Y if it's safe
+                }
+            } catch (blockError) {
+                // Block checking failed (probably void/sky) - assume it's safe, stay at current Y
+                return currentY;
+            }
+            
+            // If current Y isn't safe, search upward
+            for (let y = startY + 1; y <= Math.min(startY + 10, 320); y++) {
+                try {
+                    const block = dimension.getBlock({ x: Math.floor(x), y: y, z: Math.floor(z) });
+                    const blockAbove = dimension.getBlock({ x: Math.floor(x), y: y + 1, z: Math.floor(z) });
+                    
+                    if (block && blockAbove && 
+                        block.typeId === 'minecraft:air' && 
+                        blockAbove.typeId === 'minecraft:air') {
+                        return y;
+                    }
+                } catch (blockError) {
+                    continue;
+                }
+            }
+            
+            // If no safe spot found going up, try going down
+            for (let y = startY - 1; y >= Math.max(startY - 10, -64); y--) {
+                try {
+                    const block = dimension.getBlock({ x: Math.floor(x), y: y, z: Math.floor(z) });
+                    const blockAbove = dimension.getBlock({ x: Math.floor(x), y: y + 1, z: Math.floor(z) });
+                    
+                    if (block && blockAbove && 
+                        block.typeId === 'minecraft:air' && 
+                        blockAbove.typeId === 'minecraft:air') {
+                        return y;
+                    }
+                } catch (blockError) {
+                    continue;
+                }
+            }
+            
+            // Fallback: if all block checking fails, return current Y (assume it's safe)
+            return currentY;
+            
+        } catch (error) {
+            // If everything fails, return the original Y level
             return currentY;
         }
-        
-        // If player is too high, bring them down to a safe level
-        return 100;
     }
 }
 
+// Initialize the world border manager
 const worldBorderManager = new WorldBorderManager();
 
-system.runTimeout(() => {
-    worldBorderManager.loadSettings();
-}, 20);
+// Register custom commands using proper startup event
+system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
+    // Register enums for command parameters
+    customCommandRegistry.registerEnum("worldborder:dimension", ["all", "overworld", "nether", "end"]);
+    customCommandRegistry.registerEnum("worldborder:onoff", ["on", "off"]);
 
-console.log('BedrockWorldBorder v2.0 by Rob \'myGen\' Hall - Loaded successfully!');
+    // Register help command
+    customCommandRegistry.registerCommand(
+        {
+            name: "worldborder:help",
+            description: "Shows available world border commands",
+            permissionLevel: CommandPermissionLevel.Any,
+            cheatsRequired: false,
+            mandatoryParameters: []
+        },
+        (origin) => {
+            if (!origin.sourceEntity) return;
+            system.run(() => {
+                worldBorderManager.showHelp(origin.sourceEntity);
+            });
+        }
+    );
+
+    // Register status command
+    customCommandRegistry.registerCommand(
+        {
+            name: "worldborder:status",
+            description: "Shows current world border status",
+            permissionLevel: CommandPermissionLevel.Any,
+            cheatsRequired: false,
+            mandatoryParameters: []
+        },
+        (origin) => {
+            if (!origin.sourceEntity) return;
+            system.run(() => {
+                worldBorderManager.showStatus(origin.sourceEntity);
+            });
+        }
+    );
+
+    // Register size command
+    customCommandRegistry.registerCommand(
+        {
+            name: "worldborder:size",
+            description: "Sets the world border size for specified dimension",
+            permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
+            mandatoryParameters: [
+                {
+                    name: "worldborder:dimension",
+                    type: CustomCommandParamType.Enum,
+                },
+                {
+                    name: "size",
+                    type: CustomCommandParamType.Integer,
+                }
+            ]
+        },
+        (origin, dimension, size) => {
+            if (!origin.sourceEntity) return;
+            system.run(() => {
+                worldBorderManager.setSize(origin.sourceEntity, dimension, size);
+            });
+        }
+    );
+
+    // Register toggle command
+    customCommandRegistry.registerCommand(
+        {
+            name: "worldborder:toggle",
+            description: "Toggles world border on/off for specified dimension",
+            permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
+            mandatoryParameters: [
+                {
+                    name: "worldborder:dimension",
+                    type: CustomCommandParamType.Enum,
+                }
+            ]
+        },
+        (origin, dimension) => {
+            if (!origin.sourceEntity) return;
+            system.run(() => {
+                worldBorderManager.toggleBorder(origin.sourceEntity, dimension);
+            });
+        }
+    );
+
+    // Register warning command
+    customCommandRegistry.registerCommand(
+        {
+            name: "worldborder:warning",
+            description: "Turns warning messages on or off",
+            permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
+            mandatoryParameters: [
+                {
+                    name: "worldborder:onoff",
+                    type: CustomCommandParamType.Enum,
+                }
+            ]
+        },
+        (origin, setting) => {
+            if (!origin.sourceEntity) return;
+            system.run(() => {
+                worldBorderManager.setWarning(origin.sourceEntity, setting === 'on');
+            });
+        }
+    );
+
+    // Register warndistance command
+    customCommandRegistry.registerCommand(
+        {
+            name: "worldborder:warndistance",
+            description: "Sets the distance for border warnings",
+            permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
+            mandatoryParameters: [
+                {
+                    name: "distance",
+                    type: CustomCommandParamType.Integer,
+                }
+            ]
+        },
+        (origin, distance) => {
+            if (!origin.sourceEntity) return;
+            system.run(() => {
+                worldBorderManager.setWarnDistance(origin.sourceEntity, distance);
+            });
+        }
+    );
+
+    // Commands registered successfully
+});
+
+// Persistence is handled in the constructor with delayed loading
+
+
+// Initialization complete
+system.run(() => {
+    system.runTimeout(() => {
+        console.log('BedrockWorldBorder v2.0 by Rob \'myGen\' Hall - Loaded successfully!');
+    }, 20);
+});
