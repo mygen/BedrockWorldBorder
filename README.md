@@ -63,6 +63,11 @@ Commands use proper Minecraft slash command system with `worldborder:` namespace
 
 ### Op+ Commands (require Op permission level or higher)
 
+### `/worldborder:menu`
+Brings up the menu where you can configures options globally or per-dimension
+
+![BedrockWorldBorder](worldbordermenu.png)
+
 #### `/worldborder:size <dimension> <size>`
 Sets the border size for specified dimension(s).
 - **dimension**: `all`, `overworld`, `nether`, or `end`
@@ -81,17 +86,26 @@ Toggles the world border enforcement on/off for specified dimension(s).
   - `/worldborder:toggle overworld` - Toggle only Overworld
   - `/worldborder:toggle nether` - Toggle only Nether
 
-#### `/worldborder:warning <on|off>`
+#### `/worldborder:warning <dimension> <on|off>`
+- **dimension**:  `all`, `overworld`, `nether`, or `end`
 Toggles the warning system on or off globally.
 - **Examples**:
-  - `/worldborder:warning on` - Enable warning messages
-  - `/worldborder:warning off` - Disable warning messages
+  - `/worldborder:warning overworld on` - Enable warning messages in the Overworld
+  - `/worldborder:warning end off` - Disable warning messages in the end
 
-#### `/worldborder:warndistance <distance>`
+#### `/worldborder:warndistance <dimension> <distance>`
 Sets the warning distance in blocks from the border.
+- **dimension**:  `all`, `overworld`, `nether`, or `end`
 - **distance**: Integer value (0-50 blocks maximum)
 - **Validation**: Automatically prevents distances larger than active border sizes
-- **Example**: `/worldborder:warndistance 25` - Warn when within 25 blocks of border
+- **Example**: `/worldborder:warndistance nether 25` - Warn when within 25 blocks of border in the Nether
+
+#### `/worldborder:center <dimension> <x> <z>`
+Sets the center point of your world in which to tie the world border to.
+- **dimension**:  `all`, `overworld`, `nether`, or `end`
+- **x**: The X-coordinate for your center point
+- **z**: The Z-coordianate for your center point
+- **Example**: `/worldborder:center overworld -200 50` - Sets the overworld center point to X -200 & Z 50.
 
 ## Configuration
 
@@ -103,6 +117,7 @@ Sets the warning distance in blocks from the border.
 ### Warning System
 - **Default Warning Distance**: 50 blocks from border
 - **Warning Message**: Shows remaining distance in action bar
+- **Visual Warning**: Shows particles as you approach the world border
 - **Global Control**: Can be disabled globally or per-distance modified
 - **Maximum Distance**: 50 blocks to prevent performance issues
 
@@ -195,7 +210,7 @@ BedrockWorldBorder_BP/
 - **Smart Teleportation**: Advanced Y-level calculation with block safety checking
 - **Persistent Storage**: Robust configuration saving with error handling
 
-**Version**: 2.0  
+**Version**: 2.1.0  
 **Author**: Rob 'myGen' Hall  
 **Last Updated**: 2025  
 **Minecraft Version**: 1.21.0+  
