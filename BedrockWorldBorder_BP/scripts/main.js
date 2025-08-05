@@ -14,9 +14,9 @@ import {
 class WorldBorderManager {
     constructor() {
         this.config = {
-            overworld: { enabled: false, size: 1000, warning: true, warnDistance: 50, centerX: 0, centerZ: 0, particlesEnabled: true, particleType: 'flame' },
-            nether: { enabled: false, size: 1000, warning: true, warnDistance: 50, centerX: 0, centerZ: 0, particlesEnabled: true, particleType: 'redstone' },
-            end: { enabled: false, size: 1000, warning: true, warnDistance: 50, centerX: 0, centerZ: 0, particlesEnabled: true, particleType: 'portal' }
+            overworld: { enabled: false, size: 1000, warning: true, warnDistance: 50, centerX: 0, centerZ: 0, particlesEnabled: true, particleType: 'flame', action: 'teleport' },
+            nether: { enabled: false, size: 1000, warning: true, warnDistance: 50, centerX: 0, centerZ: 0, particlesEnabled: true, particleType: 'redstone', action: 'teleport' },
+            end: { enabled: false, size: 1000, warning: true, warnDistance: 50, centerX: 0, centerZ: 0, particlesEnabled: true, particleType: 'portal', action: 'teleport' }
         };
         this.playerWarnings = new Map();
         this.lastParticlePositions = new Map();
@@ -36,9 +36,13 @@ class WorldBorderManager {
             const savedConfig = world.getDynamicProperty('worldBorderConfig');
             if (savedConfig) {
                 const parsedConfig = JSON.parse(savedConfig);
-                this.config = { ...this.config, ...parsedConfig };
+                // Merge saved config with defaults to ensure new properties are added
+                for (const dim in this.config) {
+                    if (parsedConfig[dim]) {
+                        this.config[dim] = { ...this.config[dim], ...parsedConfig[dim] };
+                    }
+                }
             }
-            
         } catch (error) {
             console.warn('Failed to load world border config, using defaults');
         }
@@ -58,18 +62,19 @@ class WorldBorderManager {
         return 'overworld';
     }
 
-    hasGameDirectorPermission(player) {
-        return player.playerPermissionLevel >= 2; // GameDirector level or higher
+    hasBypassPermission(player) {
+        return player.playerPermissionLevel >= 2 || player.hasTag('border_bypass');
     }
 
     showHelp(player) {
-        const isGameDirector = this.hasGameDirectorPermission(player);
+        const isGameDirector = player.playerPermissionLevel >= 2;
         player.sendMessage('§6=== World Border Commands ===');
         player.sendMessage('§e/worldborder:help §7- Show this help message');
         player.sendMessage('§e/worldborder:status §7- Show current border status');
         
         if (isGameDirector) {
             player.sendMessage('§e/worldborder:menu §7- Open settings GUI');
+            player.sendMessage('§e/worldborder:allow <player> <on|off> §7- Grant/revoke border bypass');
             player.sendMessage('§e/worldborder:size <all|overworld|nether|end> <size> §7- Set border size');
             player.sendMessage('§e/worldborder:toggle <all|overworld|nether|end> §7- Toggle border on/off');
             player.sendMessage('§e/worldborder:warning <all|overworld|nether|end> <on|off> §7- Toggle warning messages');
@@ -88,10 +93,11 @@ class WorldBorderManager {
             const statusText = config.enabled ? 'Enabled' : 'Disabled';
             const warningStatus = config.warning ? '§aOn' : '§cOff';
             const particleStatus = config.particlesEnabled ? '§aOn' : '§cOff';
+            const actionText = config.action === 'knockback' ? 'Knockback' : 'Teleport';
             const sizeColor = '§b';
             
             player.sendMessage(`§e${dim.charAt(0).toUpperCase() + dim.slice(1)}: ${statusColor}${statusText} §7| Size: ${sizeColor}${config.size} §7| Center: §b${config.centerX}, ${config.centerZ}`);
-            player.sendMessage(`  §7Warnings: ${warningStatus} §7| Distance: §b${config.warnDistance} §7| Particles: ${particleStatus}`);
+            player.sendMessage(`  §7Warnings: ${warningStatus} §7| Distance: §b${config.warnDistance} §7| Action: §b${actionText} §7| Particles: ${particleStatus}`);
         }
     }
 
@@ -374,18 +380,56 @@ class WorldBorderManager {
         const x = Math.abs(location.x - borderConfig.centerX);
         const z = Math.abs(location.z - borderConfig.centerZ);
         const maxCoord = Math.max(x, z);
-        const isGameDirector = this.hasGameDirectorPermission(player);
+        const hasBypass = this.hasBypassPermission(player);
 
         if (maxCoord > maxDistance) {
-            if (isGameDirector) {
+            if (hasBypass) {
+                // Show distance beyond border for admins/bypass players
                 const distanceBeyond = Math.floor(maxCoord - maxDistance);
                 player.onScreenDisplay.setActionBar(`§cBeyond border: §b${distanceBeyond} §cblocks`);
             } else {
-                this.teleportPlayerBack(player, location, maxDistance, borderConfig);
+                // Apply border action for regular players
+                if (borderConfig.action === 'knockback') {
+                    this.applyKnockbackToPlayer(player, location, borderConfig);
+                } else {
+                    this.teleportPlayerBack(player, location, maxDistance, borderConfig);
+                }
             }
         } else if (borderConfig.warning && maxCoord > (maxDistance - borderConfig.warnDistance)) {
             const distanceToBarrier = Math.floor(maxDistance - maxCoord);
             player.onScreenDisplay.setActionBar(`§eApproaching world border: §c${distanceToBarrier} §eblocks remaining`);
+        }
+    }
+
+    applyKnockbackToPlayer(player, currentLocation, borderConfig) {
+        const directionX = borderConfig.centerX - currentLocation.x;
+        const directionZ = borderConfig.centerZ - currentLocation.z;
+
+        // Normalize the direction vector
+        const magnitude = Math.sqrt(directionX * directionX + directionZ * directionZ);
+        if (magnitude === 0) return; // Avoid division by zero
+
+        const normalizedX = directionX / magnitude;
+        const normalizedZ = directionZ / magnitude;
+
+        const horizontalStrength = 3.0; // A gentle push
+        const verticalStrength = 0.1;   // Minimal vertical lift
+
+        const finalDirection = { 
+            x: normalizedX * horizontalStrength, 
+            z: normalizedZ * horizontalStrength 
+        };
+
+        try {
+            // After much trial and error, this appears to be the correct signature:
+            // The first argument is a VectorXZ object for horizontal force.
+            // The second argument is a number for vertical force.
+            player.applyKnockback(finalDirection, verticalStrength);
+            player.onScreenDisplay.setActionBar('§cYou have reached the world border!');
+            
+            player.playSound('item.shield.block', { volume: 0.5, pitch: 0.8 });
+        } catch (error) {
+            console.warn(`Failed to apply knockback to ${player.name}: ${error}`);
         }
     }
 
@@ -526,31 +570,38 @@ class WorldBorderManager {
         
         try {
             const particleOptions = ['flame', 'redstone', 'portal', 'critical'];
+            const particleNames = ['Flame (Orange)', 'Redstone (Red)', 'Portal (Purple)', 'Critical (Yellow)'];
             let particleIndex = particleOptions.indexOf(config.particleType);
-            if (particleIndex === -1) particleIndex = 0; // Fallback to first option if not found
-            console.log(`[DEBUG] Particle type: ${config.particleType}, Index: ${particleIndex}`);
+            if (particleIndex === -1) particleIndex = 0;
+
+            const actionOptions = ['teleport', 'knockback'];
+            const actionNames = ['Teleport', 'Knockback'];
+            let actionIndex = actionOptions.indexOf(config.action);
+            if (actionIndex === -1) actionIndex = 0;
             
             const form = new ModalFormData()
                 .title(`${dimensionName} Settings`)
                 .toggle('Border Enabled', { defaultValue: config.enabled })
                 .textField('Border Size', 'Enter size (minimum 100)', { defaultValue: config.size.toString() })
+                .dropdown('Border Action', actionNames, { defaultValueIndex: actionIndex })
                 .toggle('Warnings Enabled', { defaultValue: config.warning })
                 .textField('Warning Distance', 'Enter distance (0-50)', { defaultValue: config.warnDistance.toString() })
                 .toggle('Particles Enabled', { defaultValue: config.particlesEnabled })
-                .dropdown('Particle Style', ['Flame (Orange)', 'Redstone (Red)', 'Portal (Purple)', 'Critical (Yellow)'], { defaultValue: particleIndex })
+                .dropdown('Particle Style', particleNames, { defaultValueIndex: particleIndex })
                 .textField('Center X Coordinate', 'Enter X center (default: 0)', { defaultValue: config.centerX.toString() })
                 .textField('Center Z Coordinate', 'Enter Z center (default: 0)', { defaultValue: config.centerZ.toString() });
 
             const response = await form.show(player);
             if (response.canceled) return;
             
-            const [enabled, sizeText, warningEnabled, warnDistanceText, particlesEnabled, particleStyleIndex, centerXText, centerZText] = response.formValues;
+            const [enabled, sizeText, actionIndexResult, warningEnabled, warnDistanceText, particlesEnabled, particleStyleIndex, centerXText, centerZText] = response.formValues;
             
             const size = parseInt(sizeText);
             const warnDistance = parseInt(warnDistanceText);
             const centerX = parseInt(centerXText) || 0;
             const centerZ = parseInt(centerZText) || 0;
             const selectedParticleType = particleOptions[particleStyleIndex] || 'portal';
+            const selectedAction = actionOptions[actionIndexResult] || 'teleport';
             
             // Validate inputs
             if (isNaN(size) || size < 100) {
@@ -573,6 +624,7 @@ class WorldBorderManager {
                 for (const dim of ['overworld', 'nether', 'end']) {
                     this.config[dim].enabled = enabled;
                     this.config[dim].size = size;
+                    this.config[dim].action = selectedAction;
                     this.config[dim].warning = warningEnabled;
                     this.config[dim].warnDistance = warnDistance;
                     this.config[dim].particlesEnabled = particlesEnabled;
@@ -583,6 +635,7 @@ class WorldBorderManager {
             } else {
                 this.config[dimension].enabled = enabled;
                 this.config[dimension].size = size;
+                this.config[dimension].action = selectedAction;
                 this.config[dimension].warning = warningEnabled;
                 this.config[dimension].warnDistance = warnDistance;
                 this.config[dimension].particlesEnabled = particlesEnabled;
@@ -595,10 +648,11 @@ class WorldBorderManager {
             const statusText = enabled ? '§aenabled' : '§cdisabled';
             const warningStatusText = warningEnabled ? '§aOn' : '§cOff';
             const particlesStatusText = particlesEnabled ? '§aOn' : '§cOff';
-            const particleNames = ['Flame', 'Redstone', 'Portal', 'Critical'];
             const particleName = particleNames[particleStyleIndex] || 'Unknown';
+            const actionName = actionNames[actionIndexResult] || 'Unknown';
+
             player.sendMessage(`§aSettings updated for ${dimensionName}:`);
-            player.sendMessage(`§eBorder: ${statusText} §7| Size: §b${size} §7| Center: §b${centerX}, ${centerZ}`);
+            player.sendMessage(`§eBorder: ${statusText} §7| Size: §b${size} §7| Action: §b${actionName} §7| Center: §b${centerX}, ${centerZ}`);
             player.sendMessage(`§eWarnings: ${warningStatusText} §7| Distance: §b${warnDistance} §7| Particles: ${particlesStatusText} (${particleName})`);
         } catch (error) {
             player.sendMessage('§cError opening settings form. Please try again.');
@@ -797,6 +851,46 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
         }
     );
 
+    // Register allow command
+    customCommandRegistry.registerCommand(
+        {
+            name: "worldborder:allow",
+            description: "Grants or revokes world border bypass for a player",
+            permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
+            mandatoryParameters: [
+                {
+                    name: "player",
+                    type: CustomCommandParamType.String,
+                },
+                {
+                    name: "worldborder:onoff",
+                    type: CustomCommandParamType.Enum,
+                }
+            ]
+        },
+        (origin, playerName, onoff) => {
+            if (!origin.sourceEntity) return;
+            system.run(() => {
+                const target = world.getPlayers().find(p => p.name === playerName);
+                if (!target) {
+                    origin.sourceEntity.sendMessage(`§cPlayer '${playerName}' not found.`);
+                    return;
+                }
+
+                if (onoff === 'on') {
+                    target.addTag('border_bypass');
+                    origin.sourceEntity.sendMessage(`§aGave border bypass to ${target.name}.`);
+                    target.sendMessage("§aYou can now bypass the world border.");
+                } else {
+                    target.removeTag('border_bypass');
+                    origin.sourceEntity.sendMessage(`§aRemoved border bypass from ${target.name}.`);
+                    target.sendMessage("§cYou can no longer bypass the world border.");
+                }
+            });
+        }
+    );
+
 
     // Commands registered successfully
 });
@@ -807,6 +901,6 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
 // Initialization complete
 system.run(() => {
     system.runTimeout(() => {
-        console.log('BedrockWorldBorder v2.0 by Rob \'myGen\' Hall - Loaded successfully!');
+        console.log('BedrockWorldBorder v2.1.1 by Rob \'myGen\' Hall - Loaded successfully!');
     }, 20);
 });

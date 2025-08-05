@@ -1,217 +1,90 @@
-![BedrockWorldBorder](minecraft_title.png)
-
 # BedrockWorldBorder
 
-A comprehensive world border addon for Minecraft Bedrock Edition that prevents players from traveling beyond specified boundaries with safe teleportation back to the border edge.
+A world border addon for Minecraft Bedrock Edition that prevents players from exploring beyond set boundaries. Perfect for servers and realms that want to limit world size.
 
 ## Features
 
-### Core Functionality
-- **Multi-Dimension Support**: Different border sizes and enable/disable states for Overworld, Nether, and The End
-- **Granular Control**: Set borders per-dimension or all at once with flexible commands
-- **Smart Teleportation**: Players are teleported back to safe locations with intelligent Y-level preservation
-- **Sound Feedback**: Audio cues when hitting world border for better user experience
-- **Configurable Warning System**: Adjustable warning distance with maximum 50-block limit
-- **Op+ Permissions**: Players with Op permission level or higher can bypass borders
-- **Admin Awareness**: Op+ players see distance notifications when outside borders
-- **Persistent Settings**: All configuration saves between server restarts with robust error handling
-
-### Advanced Features
-- **Input Validation**: Minimum border size of 100 blocks, maximum warn distance of 50 blocks
-- **Cross-Validation**: Prevents invalid configurations (e.g., warn distance larger than border size)
-- **Y-Level Intelligence**: Preserves player's Y coordinate unless destination blocks are unsafe
-- **Void/Sky Support**: Players in void or above build height maintain their Y-level
-- **Block Safety Checking**: Automatically finds nearest safe air blocks when needed
-
-### Performance
-- **Optimized Checking**: Runs every 0.5 seconds (10 ticks) for responsive border enforcement
-- **Efficient Logic**: Only processes players in enabled dimensions
+- **Easy Setup**: Install and configure through in-game menus - no complex commands needed
+- **Per-Dimension Borders**: Set different limits for Overworld, Nether, and End
+- **Visual Warnings**: See particle effects when approaching the border
+- **Two Border Actions**: Choose between safe teleportation or knockback
+- **Admin Controls**: Grant trusted players permission to cross borders
+- **Custom Centers**: Place borders anywhere, not just at spawn (0,0)
 
 ## Installation
 
-### Easy Installation (Recommended)
-1. **Download** the latest `.mcpack` file from [GitHub Releases](https://github.com/mygen/BedrockWorldBorder/releases)
-2. **Double-click** the `.mcpack` file to automatically import it into Minecraft
-3. **Create a new world** or **edit an existing world**
-4. **Enable** the BedrockWorldBorder behavior pack in world settings
-5. **Activate** the "Beta APIs" experiment in world settings
-6. **Start** your world
+1. Download the `.mcpack` file
+2. Import it into Minecraft (double-click or use Import in Settings)
+3. Create a new world or edit existing world
+4. Enable the "BedrockWorldBorder" behavior pack
+5. **Important**: Enable "Beta APIs" experiment in world settings
+6. Start your world
 
-### Manual Installation
-1. **Download** and extract the addon files from the repository
-2. **Copy** the `BedrockWorldBorder_BP` folder to your world's `behavior_packs` directory:
-   - **Windows**: `%LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\behavior_packs\`
-   - **Android**: `/storage/emulated/0/games/com.mojang/behavior_packs/`
-   - **iOS**: `Apps/Minecraft/Documents/games/com.mojang/behavior_packs/`
-3. **Enable** the behavior pack in your world settings
-4. **Activate** the "Beta APIs" experiment in world settings
-5. **Restart** your world/server
+## Quick Start
 
-### Requirements
-- Minecraft Bedrock Edition 1.21.0+
-- Beta APIs experiment enabled
-- @minecraft/server 2.1.0-beta with experimental features
-- **No cheats required** - addon works with cheatsRequired: false
+Once in your world, use `/worldborder:menu` to open the settings GUI. From there you can:
+
+- Enable/disable borders for each dimension
+- Set border size (how many blocks from center)
+- Choose particle effects (flame, redstone, portal, critical)
+- Pick border action (teleport players back or push them with knockback)
+- Set custom center coordinates
 
 ## Commands
 
-Commands use proper Minecraft slash command system with `worldborder:` namespace. Op+ permission level required for administrative commands.
+**Everyone can use:**
+- `/worldborder:help` - Show available commands
+- `/worldborder:status` - See current border settings
 
-### Available to Everyone
-- `/worldborder:help` - Show command help and available commands
-- `/worldborder:status` - Show current border configuration with color-coded status
+**Admins only (GameDirector+):**
+- `/worldborder:menu` - Open settings GUI (recommended)
+- `/worldborder:size <dimension> <blocks>` - Set border size
+- `/worldborder:center <dimension> <x> <z>` - Set custom center
+- `/worldborder:allow <player> <on|off>` - Grant border bypass permission
 
-### Op+ Commands (require Op permission level or higher)
+**Dimensions**: Use `overworld`, `nether`, `end`, or `all`
 
-### `/worldborder:menu`
-Brings up the menu where you can configures options globally or per-dimension
+## How It Works
 
-![BedrockWorldBorder](worldbordermenu.png)
+1. **Particle Warning**: When you get within 10 blocks of the border, you'll see particles showing where the boundary is
+2. **Distance Warning**: Get closer and you'll see chat messages telling you how far you are from the edge
+3. **Border Action**: Cross the border and either get teleported back safely or pushed back with knockback
 
-#### `/worldborder:size <dimension> <size>`
-Sets the border size for specified dimension(s).
-- **dimension**: `all`, `overworld`, `nether`, or `end`
-- **size**: Integer value (minimum 100 blocks)
-- **Validation**: Automatically prevents sizes smaller than current warning distance
-- **Examples**: 
-  - `/worldborder:size all 1500` - Set all dimensions to 1500 blocks
-  - `/worldborder:size overworld 2000` - Set only Overworld to 2000 blocks
-  - `/worldborder:size nether 500` - Set only Nether to 500 blocks
+## Border Actions
 
-#### `/worldborder:toggle <dimension>`
-Toggles the world border enforcement on/off for specified dimension(s).
-- **dimension**: `all`, `overworld`, `nether`, or `end`
-- **Examples**:
-  - `/worldborder:toggle all` - Toggle all dimensions
-  - `/worldborder:toggle overworld` - Toggle only Overworld
-  - `/worldborder:toggle nether` - Toggle only Nether
+- **Teleport**: Instantly moves you back to a safe spot inside the border (default)
+- **Knockback**: Pushes you back toward the center with momentum and sound effects
 
-#### `/worldborder:warning <dimension> <on|off>`
-- **dimension**:  `all`, `overworld`, `nether`, or `end`
-Toggles the warning system on or off globally.
-- **Examples**:
-  - `/worldborder:warning overworld on` - Enable warning messages in the Overworld
-  - `/worldborder:warning end off` - Disable warning messages in the end
+## Permissions
 
-#### `/worldborder:warndistance <dimension> <distance>`
-Sets the warning distance in blocks from the border.
-- **dimension**:  `all`, `overworld`, `nether`, or `end`
-- **distance**: Integer value (0-50 blocks maximum)
-- **Validation**: Automatically prevents distances larger than active border sizes
-- **Example**: `/worldborder:warndistance nether 25` - Warn when within 25 blocks of border in the Nether
+- **Regular Players**: Affected by all border rules
+- **Admins (GameDirector+)**: Can use commands and see "Beyond border" warnings when outside
+- **Bypass Players**: Can cross borders freely (use `/worldborder:allow PlayerName on`)
 
-#### `/worldborder:center <dimension> <x> <z>`
-Sets the center point of your world in which to tie the world border to.
-- **dimension**:  `all`, `overworld`, `nether`, or `end`
-- **x**: The X-coordinate for your center point
-- **z**: The Z-coordianate for your center point
-- **Example**: `/worldborder:center overworld -200 50` - Sets the overworld center point to X -200 & Z 50.
+## Common Issues
 
-## Configuration
+**Commands don't work?**
+- Make sure "Beta APIs" experiment is enabled
+- Check you have GameDirector permissions or higher
+- Use the full command with colon: `/worldborder:help`
 
-### Default Border Sizes
-- **Overworld**: 1000 blocks (disabled by default)
-- **Nether**: 1000 blocks (disabled by default)  
-- **The End**: 1000 blocks (disabled by default)
+**No particles showing?**
+- Border must be enabled for your dimension
+- Get within 10 blocks of the border edge
+- Check particles are enabled in the GUI settings
 
-### Warning System
-- **Default Warning Distance**: 50 blocks from border
-- **Warning Message**: Shows remaining distance in action bar
-- **Visual Warning**: Shows particles as you approach the world border
-- **Global Control**: Can be disabled globally or per-distance modified
-- **Maximum Distance**: 50 blocks to prevent performance issues
+**Border not stopping players?**
+- Verify border is enabled with `/worldborder:status`
+- Make sure you don't have bypass permissions
+- Look for the "Loaded successfully!" message when joining the world
 
-### Permission System
-Players with Op permission level (2) or higher have special privileges:
-- **Border Bypass**: Can travel beyond borders without being teleported back
-- **Distance Notifications**: See exact distance when outside borders
-- **Command Access**: Can use all administrative commands
-- **Sound Effects**: Still hear border sound for awareness
+## Default Settings
 
-To check your permission level, Op+ users will see additional commands in `/worldborder:help`.
+- **All Dimensions**: 1000 block radius from center (0,0)
+- **Particles**: Flame (Overworld), Redstone (Nether), Portal (End)
+- **Action**: Teleport back to border edge
+- **Warnings**: Enabled, starting 50 blocks from border
 
-## Technical Details
+---
 
-### How It Works
-1. **Position Checking**: Scans all player positions every 0.5 seconds (10 ticks)
-2. **Distance Calculation**: Uses maximum of absolute X or Z coordinates from world center (0,0)
-3. **Dimension Detection**: Automatically detects player's current dimension
-4. **Smart Teleportation**: 
-   - Moves players just inside border edge (border size - 1 block)
-   - Preserves Y coordinate unless destination blocks are unsafe
-   - Checks for air blocks at destination
-   - Searches up/down for safe blocks if needed
-   - Faces player toward world center (0,0)
-5. **Audio Feedback**: Plays 'random.orb' sound at 50% volume when teleported
-
-### Advanced Y-Level Logic
-The addon intelligently handles player teleportation at any Y-level:
-- **Safe Destination**: Keeps original Y coordinate
-- **Unsafe Destination**: Searches for nearest air blocks (up to ±10 blocks)
-- **Void Players**: Maintains void position unless blocks would be unsafe
-- **Sky Limit Players**: Maintains high altitude unless blocks would be unsafe
-- **Fallback**: Returns to original Y if block checking fails
-
-### Data Persistence
-- **World Properties**: Uses Minecraft's dynamic properties system
-- **Automatic Saving**: Configuration saves immediately after changes
-- **Load on Startup**: Settings restored when world loads
-- **Error Handling**: Graceful fallback to defaults if loading fails
-
-### Compatibility
-- **Server Performance**: Minimal impact with optimized 10-tick checking interval
-- **Multiplayer Ready**: Handles unlimited players efficiently
-- **Cross-Platform**: Works on all Bedrock platforms (Windows, Mobile, Console, etc.)
-- **Permission Integration**: Uses native Bedrock permission levels
-
-## Troubleshooting
-
-### Common Issues
-
-**Commands not working**
-- Ensure Beta APIs experiment is enabled in world settings
-- Verify you have Op permission level or higher
-- Check addon is properly installed and enabled in behavior packs
-
-**"Unknown command" errors**
-- Confirm the command name includes the namespace: `/worldborder:help`
-- Make sure you're using the full command name, not abbreviations
-
-**Players not being teleported**
-- Confirm border is enabled for that dimension with `/worldborder:status`
-- Check if player has Op+ permissions (they bypass borders)
-- Verify addon loaded successfully - look for "BedrockWorldBorder v2.0 by Rob 'myGen' Hall - Loaded successfully!" in logs
-
-**Teleported to wrong Y-level**
-- This is normal behavior for void/sky positions - addon preserves original Y unless unsafe
-- For underground positions, addon searches for safe air blocks nearby
-- If consistently problematic, report with specific coordinates and dimension
-
-**Settings not saving**
-- Ensure world has write permissions
-- Check for "World border configuration saved successfully" in logs
-- Verify Beta APIs are enabled (required for dynamic properties)
-
-## Development
-
-### File Structure
-```
-BedrockWorldBorder_BP/
-├── manifest.json          # Addon metadata and dependencies
-├── scripts/
-│   └── main.js            # Core addon logic with custom commands
-└── README.md              # This documentation
-```
-
-### Key Code Features
-- **Custom Command Registration**: Uses official Bedrock custom command API
-- **Enum Parameters**: Provides autocomplete for dimension and on/off parameters
-- **Input Validation**: Comprehensive error checking and user feedback
-- **Smart Teleportation**: Advanced Y-level calculation with block safety checking
-- **Persistent Storage**: Robust configuration saving with error handling
-
-**Version**: 2.1.0  
-**Author**: Rob 'myGen' Hall  
-**Last Updated**: 2025  
-**Minecraft Version**: 1.21.0+  
-**API Version**: @minecraft/server 2.1.0-beta
+**Version**: 2.1.1 | **Requires**: Minecraft Bedrock 1.21.0+ with Beta APIs enabled

@@ -1,281 +1,126 @@
 <h1 style="color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px;">BedrockWorldBorder</h1>
 
-<p>A comprehensive world border addon for Minecraft Bedrock Edition that prevents players from traveling beyond specified boundaries with safe teleportation back to the border edge.</p>
+<p>A world border addon for Minecraft Bedrock Edition that prevents players from exploring beyond set boundaries. Perfect for servers and realms that want to limit world size.</p>
 
 <h2 style="color: #34495e; margin-top: 30px;">Features</h2>
 
-<h3 style="color: #7f8c8d;">Core Functionality</h3>
 <div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin: 10px 0;">
     <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Multi-Dimension Support</strong>: Different border sizes and enable/disable states for Overworld, Nether, and The End</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Granular Control</strong>: Set borders per-dimension or all at once with flexible commands</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Smart Teleportation</strong>: Players are teleported back to safe locations with intelligent Y-level preservation</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Sound Feedback</strong>: Audio cues when hitting world border for better user experience</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Configurable Warning System</strong>: Adjustable warning distance with maximum 50-block limit</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Op+ Permissions</strong>: Players with Op permission level or higher can bypass borders</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Admin Awareness</strong>: Op+ players see distance notifications when outside borders</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Persistent Settings</strong>: All configuration saves between server restarts with robust error handling</li>
-    </ul>
-</div>
-
-<h3 style="color: #7f8c8d;">Advanced Features</h3>
-<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin: 10px 0;">
-    <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Input Validation</strong>: Minimum border size of 100 blocks, maximum warn distance of 50 blocks</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Cross-Validation</strong>: Prevents invalid configurations (e.g., warn distance larger than border size)</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Y-Level Intelligence</strong>: Preserves player's Y coordinate unless destination blocks are unsafe</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Void/Sky Support</strong>: Players in void or above build height maintain their Y-level</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Block Safety Checking</strong>: Automatically finds nearest safe air blocks when needed</li>
-    </ul>
-</div>
-
-<h3 style="color: #7f8c8d;">Performance</h3>
-<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin: 10px 0;">
-    <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Optimized Checking</strong>: Runs every 0.5 seconds (10 ticks) for responsive border enforcement</li>
-        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Efficient Logic</strong>: Only processes players in enabled dimensions</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Easy Setup</strong>: Install and configure through in-game menus - no complex commands needed</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Per-Dimension Borders</strong>: Set different limits for Overworld, Nether, and End</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Visual Warnings</strong>: See particle effects when approaching the border</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Two Border Actions</strong>: Choose between safe teleportation or knockback</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Admin Controls</strong>: Grant trusted players permission to cross borders</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Custom Centers</strong>: Place borders anywhere, not just at spawn (0,0)</li>
     </ul>
 </div>
 
 <h2 style="color: #34495e; margin-top: 30px;">Installation</h2>
 
-<h3 style="color: #7f8c8d;">Easy Installation (Recommended)</h3>
 <ol style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Download</strong> the latest <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">.mcpack</code> file from <a href="https://github.com/mygen/BedrockWorldBorder/releases">GitHub Releases</a></li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Double-click</strong> the <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">.mcpack</code> file to automatically import it into Minecraft</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Create a new world</strong> or <strong style="color: #2c3e50;">edit an existing world</strong></li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Enable</strong> the BedrockWorldBorder behavior pack in world settings</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Activate</strong> the "Beta APIs" experiment in world settings</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Start</strong> your world</li>
+    <li style="margin-bottom: 5px;">Download the <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">.mcpack</code> file</li>
+    <li style="margin-bottom: 5px;">Import it into Minecraft (double-click or use Import in Settings)</li>
+    <li style="margin-bottom: 5px;">Create a new world or edit existing world</li>
+    <li style="margin-bottom: 5px;">Enable the "BedrockWorldBorder" behavior pack</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #e74c3c;">Important</strong>: Enable "Beta APIs" experiment in world settings</li>
+    <li style="margin-bottom: 5px;">Start your world</li>
 </ol>
 
-<h3 style="color: #7f8c8d;">Manual Installation</h3>
-<ol style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Download</strong> and extract the addon files from the repository</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Copy</strong> the <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">BedrockWorldBorder_BP</code> folder to your world's <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">behavior_packs</code> directory:
-        <ul style="margin-left: 20px;">
-            <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Windows</strong>: <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">%LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\behavior_packs\</code></li>
-            <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Android</strong>: <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/storage/emulated/0/games/com.mojang/behavior_packs/</code></li>
-            <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">iOS</strong>: <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">Apps/Minecraft/Documents/games/com.mojang/behavior_packs/</code></li>
-        </ul>
-    </li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Enable</strong> the behavior pack in your world settings</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Activate</strong> the "Beta APIs" experiment in world settings</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Restart</strong> your world/server</li>
-</ol>
+<h2 style="color: #34495e; margin-top: 30px;">Quick Start</h2>
 
-<h3 style="color: #7f8c8d;">Requirements</h3>
+<p>Once in your world, use <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:menu</code> to open the settings GUI. From there you can:</p>
+
 <ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;">Minecraft Bedrock Edition 1.21.0+</li>
-    <li style="margin-bottom: 5px;">Beta APIs experiment enabled</li>
-    <li style="margin-bottom: 5px;">@minecraft/server 2.1.0-beta with experimental features</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">No cheats required</strong> - addon works with cheatsRequired: false</li>
+    <li style="margin-bottom: 5px;">Enable/disable borders for each dimension</li>
+    <li style="margin-bottom: 5px;">Set border size (how many blocks from center)</li>
+    <li style="margin-bottom: 5px;">Choose particle effects (flame, redstone, portal, critical)</li>
+    <li style="margin-bottom: 5px;">Pick border action (teleport players back or push them with knockback)</li>
+    <li style="margin-bottom: 5px;">Set custom center coordinates</li>
 </ul>
 
 <h2 style="color: #34495e; margin-top: 30px;">Commands</h2>
 
-<p>Commands use proper Minecraft slash command system with <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">worldborder:</code> namespace. Op+ permission level required for administrative commands.</p>
-
-<h3 style="color: #7f8c8d;">Available to Everyone</h3>
+<h3 style="color: #7f8c8d;">Everyone can use:</h3>
 <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0;">
     <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:help</code> - Show command help and available commands</li>
-        <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:status</code> - Show current border configuration with color-coded status</li>
+        <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:help</code> - Show available commands</li>
+        <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:status</code> - See current border settings</li>
     </ul>
 </div>
 
-<h3 style="color: #7f8c8d;">Op+ Commands (require Op permission level or higher)</h3>
+<h3 style="color: #7f8c8d;">Admins only (GameDirector+):</h3>
+<div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:menu</code> - Open settings GUI (recommended)</li>
+        <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:size &lt;dimension&gt; &lt;blocks&gt;</code> - Set border size</li>
+        <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:center &lt;dimension&gt; &lt;x&gt; &lt;z&gt;</code> - Set custom center</li>
+        <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:allow &lt;player&gt; &lt;on|off&gt;</code> - Grant border bypass permission</li>
+    </ul>
+</div>
 
-<h4><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:size &lt;dimension&gt; &lt;size&gt;</code></h4>
-<p>Sets the border size for specified dimension(s).</p>
-<ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">dimension</strong>: <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">all</code>, <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">overworld</code>, <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">nether</code>, or <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">end</code></li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">size</strong>: Integer value (minimum 100 blocks)</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Validation</strong>: Automatically prevents sizes smaller than current warning distance</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Examples</strong>:
-        <ul style="margin-left: 20px;">
-            <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:size all 1500</code> - Set all dimensions to 1500 blocks</li>
-            <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:size overworld 2000</code> - Set only Overworld to 2000 blocks</li>
-            <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:size nether 500</code> - Set only Nether to 500 blocks</li>
-        </ul>
-    </li>
-</ul>
+<p><strong style="color: #2c3e50;">Dimensions</strong>: Use <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">overworld</code>, <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">nether</code>, <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">end</code>, or <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">all</code></p>
 
-<h4><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:toggle &lt;dimension&gt;</code></h4>
-<p>Toggles the world border enforcement on/off for specified dimension(s).</p>
-<ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">dimension</strong>: <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">all</code>, <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">overworld</code>, <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">nether</code>, or <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">end</code></li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Examples</strong>:
-        <ul style="margin-left: 20px;">
-            <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:toggle all</code> - Toggle all dimensions</li>
-            <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:toggle overworld</code> - Toggle only Overworld</li>
-            <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:toggle nether</code> - Toggle only Nether</li>
-        </ul>
-    </li>
-</ul>
+<h2 style="color: #34495e; margin-top: 30px;">How It Works</h2>
 
-<h4><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:warning &lt;on|off&gt;</code></h4>
-<p>Toggles the warning system on or off globally.</p>
-<ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Examples</strong>:
-        <ul style="margin-left: 20px;">
-            <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:warning on</code> - Enable warning messages</li>
-            <li style="margin-bottom: 5px;"><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:warning off</code> - Disable warning messages</li>
-        </ul>
-    </li>
-</ul>
-
-<h4><code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:warndistance &lt;distance&gt;</code></h4>
-<p>Sets the warning distance in blocks from the border.</p>
-<ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">distance</strong>: Integer value (0-50 blocks maximum)</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Validation</strong>: Automatically prevents distances larger than active border sizes</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Example</strong>: <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:warndistance 25</code> - Warn when within 25 blocks of border</li>
-</ul>
-
-<h2 style="color: #34495e; margin-top: 30px;">Configuration</h2>
-
-<h3 style="color: #7f8c8d;">Default Border Sizes</h3>
-<ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Overworld</strong>: 1000 blocks (disabled by default)</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Nether</strong>: 1000 blocks (disabled by default)</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">The End</strong>: 1000 blocks (disabled by default)</li>
-</ul>
-
-<h3 style="color: #7f8c8d;">Warning System</h3>
-<ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Default Warning Distance</strong>: 50 blocks from border</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Warning Message</strong>: Shows remaining distance in action bar</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Global Control</strong>: Can be disabled globally or per-distance modified</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Maximum Distance</strong>: 50 blocks to prevent performance issues</li>
-</ul>
-
-<h3 style="color: #7f8c8d;">Permission System</h3>
-<p>Players with Op permission level (2) or higher have special privileges:</p>
-<ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Border Bypass</strong>: Can travel beyond borders without being teleported back</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Distance Notifications</strong>: See exact distance when outside borders</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Command Access</strong>: Can use all administrative commands</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Sound Effects</strong>: Still hear border sound for awareness</li>
-</ul>
-
-<p>To check your permission level, Op+ users will see additional commands in <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:help</code>.</p>
-
-<h2 style="color: #34495e; margin-top: 30px;">Technical Details</h2>
-
-<h3 style="color: #7f8c8d;">How It Works</h3>
 <ol style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Position Checking</strong>: Scans all player positions every 0.5 seconds (10 ticks)</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Distance Calculation</strong>: Uses maximum of absolute X or Z coordinates from world center (0,0)</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Dimension Detection</strong>: Automatically detects player's current dimension</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Smart Teleportation</strong>:
-        <ul style="margin-left: 20px;">
-            <li style="margin-bottom: 5px;">Moves players just inside border edge (border size - 1 block)</li>
-            <li style="margin-bottom: 5px;">Preserves Y coordinate unless destination blocks are unsafe</li>
-            <li style="margin-bottom: 5px;">Checks for air blocks at destination</li>
-            <li style="margin-bottom: 5px;">Searches up/down for safe blocks if needed</li>
-            <li style="margin-bottom: 5px;">Faces player toward world center (0,0)</li>
-        </ul>
-    </li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Audio Feedback</strong>: Plays 'random.orb' sound at 50% volume when teleported</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Particle Warning</strong>: When you get within 10 blocks of the border, you'll see particles showing where the boundary is</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Distance Warning</strong>: Get closer and you'll see chat messages telling you how far you are from the edge</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Border Action</strong>: Cross the border and either get teleported back safely or pushed back with knockback</li>
 </ol>
 
-<h3 style="color: #7f8c8d;">Advanced Y-Level Logic</h3>
-<p>The addon intelligently handles player teleportation at any Y-level:</p>
+<h2 style="color: #34495e; margin-top: 30px;">Border Actions</h2>
+
 <ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Safe Destination</strong>: Keeps original Y coordinate</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Unsafe Destination</strong>: Searches for nearest air blocks (up to ±10 blocks)</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Void Players</strong>: Maintains void position unless blocks would be unsafe</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Sky Limit Players</strong>: Maintains high altitude unless blocks would be unsafe</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Fallback</strong>: Returns to original Y if block checking fails</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Teleport</strong>: Instantly moves you back to a safe spot inside the border (default)</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Knockback</strong>: Pushes you back toward the center with momentum and sound effects</li>
 </ul>
 
-<h3 style="color: #7f8c8d;">Data Persistence</h3>
+<h2 style="color: #34495e; margin-top: 30px;">Permissions</h2>
+
 <ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">World Properties</strong>: Uses Minecraft's dynamic properties system</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Automatic Saving</strong>: Configuration saves immediately after changes</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Load on Startup</strong>: Settings restored when world loads</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Error Handling</strong>: Graceful fallback to defaults if loading fails</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Regular Players</strong>: Affected by all border rules</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Admins (GameDirector+)</strong>: Can use commands and see "Beyond border" warnings when outside</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Bypass Players</strong>: Can cross borders freely (use <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:allow PlayerName on</code>)</li>
 </ul>
 
-<h3 style="color: #7f8c8d;">Compatibility</h3>
+<h2 style="color: #34495e; margin-top: 30px;">Common Issues</h2>
+
+<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0;">
+    <strong style="color: #2c3e50;">Commands don't work?</strong>
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;">Make sure "Beta APIs" experiment is enabled</li>
+        <li style="margin-bottom: 5px;">Check you have GameDirector permissions or higher</li>
+        <li style="margin-bottom: 5px;">Use the full command with colon: <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:help</code></li>
+    </ul>
+</div>
+
+<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0;">
+    <strong style="color: #2c3e50;">No particles showing?</strong>
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;">Border must be enabled for your dimension</li>
+        <li style="margin-bottom: 5px;">Get within 10 blocks of the border edge</li>
+        <li style="margin-bottom: 5px;">Check particles are enabled in the GUI settings</li>
+    </ul>
+</div>
+
+<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0;">
+    <strong style="color: #2c3e50;">Border not stopping players?</strong>
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;">Verify border is enabled with <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:status</code></li>
+        <li style="margin-bottom: 5px;">Make sure you don't have bypass permissions</li>
+        <li style="margin-bottom: 5px;">Look for the "Loaded successfully!" message when joining the world</li>
+    </ul>
+</div>
+
+<h2 style="color: #34495e; margin-top: 30px;">Default Settings</h2>
+
 <ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Server Performance</strong>: Minimal impact with optimized 10-tick checking interval</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Multiplayer Ready</strong>: Handles unlimited players efficiently</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Cross-Platform</strong>: Works on all Bedrock platforms (Windows, Mobile, Console, etc.)</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Permission Integration</strong>: Uses native Bedrock permission levels</li>
-</ul>
-
-<h2 style="color: #34495e; margin-top: 30px;">Troubleshooting</h2>
-
-<h3 style="color: #7f8c8d;">Common Issues</h3>
-
-<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0;">
-    <strong style="color: #2c3e50;">Commands not working</strong>
-    <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 5px;">Ensure Beta APIs experiment is enabled in world settings</li>
-        <li style="margin-bottom: 5px;">Verify you have Op permission level or higher</li>
-        <li style="margin-bottom: 5px;">Check addon is properly installed and enabled in behavior packs</li>
-    </ul>
-</div>
-
-<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0;">
-    <strong style="color: #2c3e50;">"Unknown command" errors</strong>
-    <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 5px;">Confirm the command name includes the namespace: <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:help</code></li>
-        <li style="margin-bottom: 5px;">Make sure you're using the full command name, not abbreviations</li>
-    </ul>
-</div>
-
-<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0;">
-    <strong style="color: #2c3e50;">Players not being teleported</strong>
-    <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 5px;">Confirm border is enabled for that dimension with <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:status</code></li>
-        <li style="margin-bottom: 5px;">Check if player has Op+ permissions (they bypass borders)</li>
-        <li style="margin-bottom: 5px;">Verify addon loaded successfully - look for "BedrockWorldBorder v2.0 by Rob 'myGen' Hall - Loaded successfully!" in logs</li>
-    </ul>
-</div>
-
-<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0;">
-    <strong style="color: #2c3e50;">Teleported to wrong Y-level</strong>
-    <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 5px;">This is normal behavior for void/sky positions - addon preserves original Y unless unsafe</li>
-        <li style="margin-bottom: 5px;">For underground positions, addon searches for safe air blocks nearby</li>
-        <li style="margin-bottom: 5px;">If consistently problematic, report with specific coordinates and dimension</li>
-    </ul>
-</div>
-
-<div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin: 10px 0;">
-    <strong style="color: #2c3e50;">Settings not saving</strong>
-    <ul style="margin-left: 20px;">
-        <li style="margin-bottom: 5px;">Ensure world has write permissions</li>
-        <li style="margin-bottom: 5px;">Check for "World border configuration saved successfully" in logs</li>
-        <li style="margin-bottom: 5px;">Verify Beta APIs are enabled (required for dynamic properties)</li>
-    </ul>
-</div>
-
-<h2 style="color: #34495e; margin-top: 30px;">Development</h2>
-
-<h3 style="color: #7f8c8d;">File Structure</h3>
-<pre style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; border-left: 4px solid #3498db; font-family: 'Courier New', monospace;">BedrockWorldBorder_BP/
-├── manifest.json          # Addon metadata and dependencies
-├── scripts/
-│   └── main.js            # Core addon logic with custom commands
-└── README.md              # This documentation</pre>
-
-<h3 style="color: #7f8c8d;">Key Code Features</h3>
-<ul style="margin-left: 20px;">
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Custom Command Registration</strong>: Uses official Bedrock custom command API</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Enum Parameters</strong>: Provides autocomplete for dimension and on/off parameters</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Input Validation</strong>: Comprehensive error checking and user feedback</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Smart Teleportation</strong>: Advanced Y-level calculation with block safety checking</li>
-    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Persistent Storage</strong>: Robust configuration saving with error handling</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">All Dimensions</strong>: 1000 block radius from center (0,0)</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Particles</strong>: Flame (Overworld), Redstone (Nether), Portal (End)</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Action</strong>: Teleport back to border edge</li>
+    <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Warnings</strong>: Enabled, starting 50 blocks from border</li>
 </ul>
 
 <hr>
 
-<p><strong style="color: #2c3e50;">Version</strong>: 2.0<br>
-<strong style="color: #2c3e50;">Author</strong>: Rob 'myGen' Hall<br>
-<strong style="color: #2c3e50;">Last Updated</strong>: 2025<br>
-<strong style="color: #2c3e50;">Minecraft Version</strong>: 1.21.0+<br>
-<strong style="color: #2c3e50;">API Version</strong>: @minecraft/server 2.1.0-beta</p>
+<p><strong style="color: #2c3e50;">Version</strong>: 2.1.1 | <strong style="color: #2c3e50;">Requires</strong>: Minecraft Bedrock 1.21.0+ with Beta APIs enabled</p>
