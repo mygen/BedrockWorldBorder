@@ -1,3 +1,5 @@
+![BedrockWorldBorder](minecraft_title.png)
+
 # BedrockWorldBorder
 
 A world border addon for Minecraft Bedrock Edition that prevents players from exploring beyond set boundaries. Perfect for servers and realms that want to limit world size.
