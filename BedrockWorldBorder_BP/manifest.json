@@ -5,7 +5,7 @@
         "description": "A comprehensive world border addon with multi-dimension support, admin controls, and configurable warnings",
         "uuid": "3e821d0f-d902-4ea1-ab8b-1b85ac8e8eab",
         "version": [2, 1, 1],
-        "min_engine_version": [1, 21, 0]
+        "min_engine_version": [1, 21, 100]
     },
     "metadata": {
         "authors": ["Rob 'myGen' Hall"],
