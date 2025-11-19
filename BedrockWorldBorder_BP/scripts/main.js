@@ -901,6 +901,6 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
 // Initialization complete
 system.run(() => {
     system.runTimeout(() => {
-        console.log('BedrockWorldBorder v2.1.1 by Rob \'myGen\' Hall - Loaded successfully!');
+        console.log('§7[§3BedrockWorldBorder§7] - [§3v2.1.1§7] - [§3Rob \'§emyGen§3\' Hall§7] - [§3Loaded successfully!§7]');
     }, 20);
 });
