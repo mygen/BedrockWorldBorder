@@ -11,7 +11,7 @@ export const DEFAULTS = {
     MAX_WARN_DISTANCE: 50,
     PARTICLE_RENDER_DISTANCE: 10,
     WARNING_CHECK_INTERVAL: 10,  // ticks
-    PARTICLE_UPDATE_INTERVAL: 20,  // ticks (reduced from 10 for performance)
+    PARTICLE_UPDATE_INTERVAL: 20,  // ticks (1 second - using command-based spawning)
     INIT_DELAY: 20,  // ticks
     MAX_GRID_SIZE: 4,  // Reduced from 6 for performance
     MIN_GRID_SIZE: 2,
@@ -22,6 +22,13 @@ export const DEFAULTS = {
     KNOCKBACK_HORIZONTAL_STRENGTH: 3.0,
     KNOCKBACK_VERTICAL_STRENGTH: 0.1,
     MAX_EXTRA_PARTICLES: 1,  // Reduced from 2 for performance
+    WALL_EMITTER_SPACING: 16,  // one anchor per chunk
+    WALL_EMITTER_REFRESH_TICKS: 80,  // re-emit every ~4s to match particle lifetime
+    WALL_EMITTER_MANAGEMENT_RADIUS: 128,  // Only manage emitters within this distance of players
+    WALL_EMITTER_QUERY_RADIUS: 3.0,  // Search radius for finding emitters at a position
+    WALL_EMITTER_POSITION_TOLERANCE: 1.0,  // How close an emitter must be to the target position
+    WALL_EMITTER_CLEANUP_INTERVAL: 200,  // Ticks between cleanup passes (10 seconds)
+    PERSIST_KEY_PREFIX: 'wallEmitters_',  // dynamic property prefix per dimension
 };
 
 /**
@@ -97,6 +104,7 @@ export const DEFAULT_DIMENSION_CONFIG = {
         centerZ: 0,
         particlesEnabled: true,
         particleType: 'flame',
+        useWallParticles: false,
         action: 'teleport'
     },
     nether: {
@@ -108,6 +116,7 @@ export const DEFAULT_DIMENSION_CONFIG = {
         centerZ: 0,
         particlesEnabled: true,
         particleType: 'redstone',
+        useWallParticles: false,
         action: 'teleport'
     },
     end: {
@@ -119,6 +128,7 @@ export const DEFAULT_DIMENSION_CONFIG = {
         centerZ: 0,
         particlesEnabled: true,
         particleType: 'portal',
+        useWallParticles: false,
         action: 'teleport'
     }
 };

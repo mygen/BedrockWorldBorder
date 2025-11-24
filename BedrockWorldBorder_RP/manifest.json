@@ -1,0 +1,28 @@
+{
+    "format_version": 2,
+    "header": {
+        "name": "BedrockWorldBorder Resources",
+        "description": "Resource pack for BedrockWorldBorder - contains particle effects for world border visualization",
+        "uuid": "a7f3c8e2-5d91-4b3a-9c6f-2e8d4a1b7f9c",
+        "version": [2, 1, 1],
+        "min_engine_version": [1, 21, 100]
+    },
+    "metadata": {
+        "authors": ["Rob 'myGen' Hall"],
+        "license": "CC BY-NC-SA 4.0",
+        "url": "https://www.britannica.world"
+    },
+    "modules": [
+        {
+            "type": "resources",
+            "uuid": "b9e2f7a1-6c4d-4e8b-a3f5-1d9c8b2e6a4f",
+            "version": [2, 1, 1]
+        }
+    ],
+    "dependencies": [
+        {
+            "uuid": "3e821d0f-d902-4ea1-ab8b-1b85ac8e8eab",
+            "version": [2, 1, 1]
+        }
+    ]
+}

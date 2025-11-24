@@ -25,7 +25,11 @@ export class WorldBorderManager {
         this.config = JSON.parse(JSON.stringify(DEFAULT_DIMENSION_CONFIG));
         this.playerWarnings = new Map();
         this.lastParticlePositions = new Map();
+        this.particleSpawnOffset = 0; // Track which group of particles to spawn (staggered spawning)
         this.events = new BorderEventEmitter();
+        this.tickCounter = 0;
+        this.emitterLastSpawn = new Map(); // Track when we last spawned particles for each position
+        this.emitterRegistry = null; // Will load from dynamic properties: {wallId: [{x, y, z}]}
         this.init();
     }
 
@@ -42,7 +46,7 @@ export class WorldBorderManager {
     }
 
     /**
-     * Register cleanup handler for when players leave
+     * Register cleanup handler for when players leave or change dimensions
      * Fixes memory leak by removing player data from Maps
      */
     registerPlayerCleanup() {
@@ -71,6 +75,78 @@ export class WorldBorderManager {
         } catch (error) {
             console.warn('Failed to load world border config, using defaults');
         }
+
+        // Load emitter registry
+        try {
+            const savedRegistry = world.getDynamicProperty('worldBorderEmitters_overworld');
+            if (savedRegistry) {
+                this.emitterRegistry = JSON.parse(savedRegistry);
+            } else {
+                this.emitterRegistry = {};
+            }
+        } catch (error) {
+            console.warn('Failed to load emitter registry, creating new one');
+            this.emitterRegistry = {};
+        }
+    }
+
+    /**
+     * Save emitter registry to dynamic properties
+     */
+    saveEmitterRegistry() {
+        try {
+            world.setDynamicProperty('worldBorderEmitters_overworld', JSON.stringify(this.emitterRegistry));
+        } catch (error) {
+            console.warn('Failed to save emitter registry');
+        }
+    }
+
+    /**
+     * Build the emitter registry based on current border configuration
+     * This creates a list of all positions where emitters should exist
+     */
+    buildEmitterRegistry(dimensionKey) {
+        const borderConfig = this.config[dimensionKey];
+        if (!borderConfig.enabled || !borderConfig.particlesEnabled || !borderConfig.useWallParticles) {
+            this.emitterRegistry = {};
+            this.saveEmitterRegistry();
+            return;
+        }
+
+        const centerX = borderConfig.centerX;
+        const centerZ = borderConfig.centerZ;
+        const size = borderConfig.size;
+        const spacing = DEFAULTS.WALL_EMITTER_SPACING;
+        const wallY = 128;
+
+        const eastWallX = centerX + size + 1;
+        const westWallX = centerX - size;
+        const southWallZ = centerZ + size + 1;
+        const northWallZ = centerZ - size;
+
+        const registry = {};
+
+        // East/West walls
+        const zMin = northWallZ + 0.5;
+        const zMax = southWallZ - 1 + 0.5;
+        for (let z = zMin; z <= zMax; z += spacing) {
+            const bucket = z - 0.5;
+            registry[`east:${bucket.toFixed(1)}`] = { x: eastWallX, y: wallY, z: bucket, type: 'worldborder:wall_emitter_x', wallId: 'east' };
+            registry[`west:${bucket.toFixed(1)}`] = { x: westWallX, y: wallY, z: bucket, type: 'worldborder:wall_emitter_x', wallId: 'west' };
+        }
+
+        // North/South walls
+        const xMin = westWallX + 0.5;
+        const xMax = eastWallX - 1 + 0.5;
+        for (let x = xMin; x <= xMax; x += spacing) {
+            const bucket = x - 0.5;
+            registry[`south:${bucket.toFixed(1)}`] = { x: bucket, y: wallY, z: southWallZ, type: 'worldborder:wall_emitter_z', wallId: 'south' };
+            registry[`north:${bucket.toFixed(1)}`] = { x: bucket, y: wallY, z: northWallZ, type: 'worldborder:wall_emitter_z', wallId: 'north' };
+        }
+
+        this.emitterRegistry = registry;
+        this.saveEmitterRegistry();
+        console.log(`Built emitter registry with ${Object.keys(registry).length} positions`);
     }
 
     /**
@@ -161,9 +237,11 @@ export class WorldBorderManager {
                 this.config[dim].size = size;
             }
             player.sendMessage(MESSAGES.SIZE_SET_ALL(size));
+            this.clearWallEmittersForDimension('overworld');
         } else if (this.config[dimension]) {
             this.config[dimension].size = size;
             player.sendMessage(MESSAGES.SIZE_SET_DIM(size, dimension));
+            this.clearWallEmittersForDimension(dimension);
         } else {
             player.sendMessage(MESSAGES.INVALID_DIMENSION);
             return;
@@ -185,11 +263,19 @@ export class WorldBorderManager {
             }
             player.sendMessage(newState ? MESSAGES.BORDER_ENABLED_ALL : MESSAGES.BORDER_DISABLED_ALL);
             this.events.emit(newState ? BorderEvents.BORDER_ENABLED : BorderEvents.BORDER_DISABLED, { dimension: 'all' });
+            if (!newState) {
+                for (const dim of ['overworld', 'nether', 'end']) {
+                    this.clearWallEmittersForDimension(dim);
+                }
+            }
         } else if (this.config[dimension]) {
             this.config[dimension].enabled = !this.config[dimension].enabled;
             const newState = this.config[dimension].enabled;
             player.sendMessage(newState ? MESSAGES.BORDER_ENABLED_DIM(dimension) : MESSAGES.BORDER_DISABLED_DIM(dimension));
             this.events.emit(newState ? BorderEvents.BORDER_ENABLED : BorderEvents.BORDER_DISABLED, { dimension });
+            if (!newState) {
+                this.clearWallEmittersForDimension(dimension);
+            }
         } else {
             player.sendMessage(MESSAGES.INVALID_DIMENSION);
             return;
@@ -265,6 +351,40 @@ export class WorldBorderManager {
     }
 
     /**
+     * Set wall particles on/off for a dimension
+     * @param {Player} player - The player executing the command
+     * @param {string} dimension - Dimension key or 'all'
+     * @param {boolean} enabled - Whether wall particles are enabled
+     */
+    setWallParticles(player, dimension, enabled) {
+        if (dimension === 'all') {
+            for (const dim of ['overworld', 'nether', 'end']) {
+                this.config[dim].useWallParticles = enabled;
+            }
+            player.sendMessage(enabled ?
+                `${COLORS.SUCCESS}Wall particles enabled for all dimensions` :
+                `${COLORS.SUCCESS}Wall particles disabled for all dimensions`);
+            if (!enabled) {
+                for (const dim of ['overworld', 'nether', 'end']) {
+                    this.clearWallEmittersForDimension(dim);
+                }
+            }
+        } else if (this.config[dimension]) {
+            this.config[dimension].useWallParticles = enabled;
+            player.sendMessage(enabled ?
+                `${COLORS.SUCCESS}Wall particles enabled for ${dimension}` :
+                `${COLORS.SUCCESS}Wall particles disabled for ${dimension}`);
+            if (!enabled) {
+                this.clearWallEmittersForDimension(dimension);
+            }
+        } else {
+            player.sendMessage(MESSAGES.INVALID_DIMENSION);
+            return;
+        }
+        this.saveConfig();
+    }
+
+    /**
      * Set center coordinates for a dimension
      * @param {Player} player - The player executing the command
      * @param {string} dimension - Dimension key or 'all'
@@ -283,10 +403,12 @@ export class WorldBorderManager {
                 this.config[dim].centerZ = z;
             }
             player.sendMessage(MESSAGES.CENTER_SET_ALL(x, z));
+            this.clearWallEmittersForDimension('overworld');
         } else if (this.config[dimension]) {
             this.config[dimension].centerX = x;
             this.config[dimension].centerZ = z;
             player.sendMessage(MESSAGES.CENTER_SET_DIM(x, z, dimension));
+            this.clearWallEmittersForDimension(dimension);
         } else {
             player.sendMessage(MESSAGES.INVALID_DIMENSION);
             return;
@@ -408,6 +530,357 @@ export class WorldBorderManager {
     }
 
     /**
+     * Show wall particles (Java edition style) - Continuous respawn
+     * Particles have 10-second lifetime and are respawned every 10 seconds
+     * This reduces flicker frequency and allows border changes to update within 10 seconds
+     * Only spawns particles near the player (within render distance)
+     * @param {Player} player - The player to show particles to
+     */
+    showWallParticles(player) {
+        const dimensionKey = getDimensionKey(player.dimension.id);
+        const borderConfig = this.config[dimensionKey];
+
+        if (!borderConfig.enabled || !borderConfig.particlesEnabled || !borderConfig.useWallParticles) {
+            return;
+        }
+
+        const playerLoc = player.location;
+        const centerX = borderConfig.centerX;
+        const centerZ = borderConfig.centerZ;
+        const size = borderConfig.size;
+        const centerY = 128; // Midpoint between -64 and 320
+        const particleWidth = 1.0; // Spawn every 1 block
+        // Dynamic render distance: at least the diagonal distance of the border + some buffer
+        // This ensures all walls are visible from center
+        const renderDistance = Math.ceil(Math.sqrt(2 * size * size)) + 20; // Diagonal + 20 block buffer
+
+        // Calculate exact wall positions
+        const eastWallX = centerX + size + 1; // +1 to place on outer face
+        const westWallX = centerX - size;
+        const southWallZ = centerZ + size + 1; // +1 to place on outer face
+        const northWallZ = centerZ - size;
+
+        // Helper function to check if position is near player
+        const isNearPlayer = (x, z) => {
+            const dx = x - playerLoc.x;
+            const dz = z - playerLoc.z;
+            return (dx * dx + dz * dz) <= (renderDistance * renderDistance);
+        };
+
+        // Spawn East wall particles (only near player)
+        const eastWallLength = southWallZ - northWallZ;
+        const eastParticleCount = Math.ceil(eastWallLength / particleWidth);
+        for (let i = 0; i < eastParticleCount; i++) {
+            const particleZ = northWallZ + (i * particleWidth) + 0.5;
+
+            if (isNearPlayer(eastWallX, particleZ)) {
+                const spawnLocation = { x: eastWallX, y: centerY, z: particleZ };
+                try {
+                    player.spawnParticle("worldborder:worldborder", spawnLocation);
+                } catch (error) {
+                    // Silently fail - will retry next cycle
+                }
+            }
+        }
+
+        // Spawn West wall particles (only near player)
+        const westWallLength = southWallZ - northWallZ;
+        const westParticleCount = Math.ceil(westWallLength / particleWidth);
+        for (let i = 0; i < westParticleCount; i++) {
+            const particleZ = northWallZ + (i * particleWidth) + 0.5;
+                const spawnLocation = { x: westWallX, y: centerY, z: particleZ };
+            if (isNearPlayer(westWallX, particleZ)) {
+
+                try {
+                    player.spawnParticle("worldborder:worldborder", spawnLocation);    
+                } catch (error) {
+                    // Silently fail - will retry next cycle
+                }
+            }
+        }
+
+        // Spawn South wall particles (only near player)
+        const southWallLength = eastWallX - westWallX;
+        const southParticleCount = Math.ceil(southWallLength / particleWidth);
+        for (let i = 0; i < southParticleCount; i++) {
+            const particleX = westWallX + (i * particleWidth) + 0.5;
+
+            if (isNearPlayer(particleX, southWallZ)) {
+                const spawnLocation = { x: particleX, y: centerY, z: southWallZ };
+                try {
+                    player.spawnParticle("worldborder:worldborder_ew", spawnLocation);
+                } catch (error) {
+                    // Silently fail - will retry next cycle
+                }
+            }
+        }
+
+        // Spawn North wall particles (only near player)
+        const northWallLength = eastWallX - westWallX;
+        const northParticleCount = Math.ceil(northWallLength / particleWidth);
+        for (let i = 0; i < northParticleCount; i++) {
+            const particleX = westWallX + (i * particleWidth) + 0.5;
+
+            if (isNearPlayer(particleX, northWallZ)) {
+                const spawnLocation = { x: particleX, y: centerY, z: northWallZ };
+                try {
+                    player.spawnParticle("worldborder:worldborder_ew", spawnLocation);
+                } catch (error) {
+                    // Silently fail - will retry next cycle
+                }
+            }
+        }
+    }
+
+    /**
+     * Manage persistent wall emitter entities using the registry.
+     * Only manages emitters in loaded chunks near the player.
+     */
+    manageWallEmitters(player, dimensionKey) {
+        const borderConfig = this.config[dimensionKey];
+        if (!borderConfig.enabled || !borderConfig.particlesEnabled || !borderConfig.useWallParticles) {
+            return;
+        }
+
+        // Ensure registry exists
+        if (!this.emitterRegistry || Object.keys(this.emitterRegistry).length === 0) {
+            this.buildEmitterRegistry(dimensionKey);
+        }
+
+        const dim = player.dimension;
+        const playerLoc = player.location;
+        const managementRadius = DEFAULTS.WALL_EMITTER_MANAGEMENT_RADIUS;
+        const wallY = 128;
+
+        // Particle burst helper
+        const particleBurst = (dimension, particleId, wallId, pos) => {
+            const entry = this.emitterRegistry[`${wallId}:${pos.z !== undefined ? pos.z.toFixed(1) : pos.x.toFixed(1)}`];
+            if (!entry) return;
+
+            for (let i = 0; i < 16; i++) {
+                const offset = i + 0.5;
+                let particlePos;
+
+                if (wallId === 'east' || wallId === 'west') {
+                    particlePos = { x: pos.x, y: wallY, z: pos.z + offset };
+                } else {
+                    particlePos = { x: pos.x + offset, y: wallY, z: pos.z };
+                }
+
+                try {
+                    const particleType = wallId === 'east' || wallId === 'west' ? 'worldborder:worldborder' : 'worldborder:worldborder_ew';
+                    dimension.spawnParticle(particleType, particlePos);
+                } catch (error) {
+                    // ignore spawn errors
+                }
+            }
+        };
+
+        // Check each registry entry
+        for (const [key, entry] of Object.entries(this.emitterRegistry)) {
+            const { x, y, z, type, wallId } = entry;
+            const spawnPos = { x, y, z };
+
+            // Only process if near player
+            const dx = x - playerLoc.x;
+            const dz = z - playerLoc.z;
+            if ((dx * dx + dz * dz) > (managementRadius * managementRadius)) {
+                continue;
+            }
+
+            // Check if chunk is loaded
+            try {
+                const block = dim.getBlock(spawnPos);
+                if (!block) continue; // Chunk not loaded
+            } catch (error) {
+                continue; // Chunk not loaded
+            }
+
+            // Check if emitter exists at this position
+            let emitterExists = false;
+            try {
+                const nearbyEmitters = dim.getEntities({
+                    type: type,
+                    location: spawnPos,
+                    maxDistance: DEFAULTS.WALL_EMITTER_QUERY_RADIUS
+                });
+
+                emitterExists = nearbyEmitters.some(ent => {
+                    const loc = ent.location;
+                    const hasCorrectTag = ent.getTags().some(tag => tag === `wall:${wallId}`);
+                    const posMatch = Math.abs(loc.x - x) < DEFAULTS.WALL_EMITTER_POSITION_TOLERANCE &&
+                                    Math.abs(loc.y - y) < DEFAULTS.WALL_EMITTER_POSITION_TOLERANCE &&
+                                    Math.abs(loc.z - z) < DEFAULTS.WALL_EMITTER_POSITION_TOLERANCE;
+                    return hasCorrectTag && posMatch;
+                });
+            } catch (error) {
+                // Query failed
+            }
+
+            // Spawn if doesn't exist
+            if (!emitterExists) {
+                const lastSpawn = this.emitterLastSpawn.get(key) || 0;
+                const ticksSinceLastSpawn = this.tickCounter - lastSpawn;
+
+                if (ticksSinceLastSpawn >= 100 || lastSpawn === 0) {
+                    this.emitterLastSpawn.set(key, this.tickCounter);
+
+                    try {
+                        const newEmitter = dim.spawnEntity(type, spawnPos);
+                        if (newEmitter) {
+                            newEmitter.addTag('worldborder_wall_emitter');
+                            newEmitter.addTag(`wall:${wallId}`);
+                            particleBurst(dim, null, wallId, spawnPos);
+                        }
+                    } catch (error) {
+                        // Failed to spawn, will retry later
+                    }
+                }
+            }
+            // Emitter exists, refresh particles periodically
+            else {
+                const last = this.emitterLastSpawn.get(key) || 0;
+                if ((this.tickCounter - last) >= DEFAULTS.WALL_EMITTER_REFRESH_TICKS) {
+                    particleBurst(dim, null, wallId, spawnPos);
+                    this.emitterLastSpawn.set(key, this.tickCounter);
+                }
+            }
+        }
+    }
+
+    /**
+     * Remove emitter entities that are no longer needed or have gone stale.
+     * This runs periodically to clean up:
+     * - Emitters for disabled borders
+     * - Emitters outside current border bounds (after resize/recenter)
+     */
+    cleanupWallEmitters() {
+        try {
+            // Only process overworld for now (can extend to other dimensions if needed)
+            const dim = world.getDimension('overworld');
+            const dimensionKey = 'overworld';
+            const borderConfig = this.config[dimensionKey];
+
+            // If border is disabled or wall particles are off, remove all emitters
+            if (!borderConfig.enabled || !borderConfig.particlesEnabled || !borderConfig.useWallParticles) {
+                this.clearWallEmittersForDimension(dimensionKey);
+                return;
+            }
+
+            // Get current border bounds
+            const centerX = borderConfig.centerX;
+            const centerZ = borderConfig.centerZ;
+            const size = borderConfig.size;
+            const eastWallX = centerX + size + 1; // +1 to place on outer face
+            const westWallX = centerX - size;
+            const southWallZ = centerZ + size + 1; // +1 to place on outer face
+            const northWallZ = centerZ - size;
+
+            // Helper to check if a position is within valid border bounds
+            const isValidBorderPosition = (wallId, x, z) => {
+                switch (wallId) {
+                    case 'east':
+                        return Math.abs(x - eastWallX) < 2 && z >= northWallZ - 1 && z <= southWallZ;
+                    case 'west':
+                        return Math.abs(x - westWallX) < 2 && z >= northWallZ - 1 && z <= southWallZ;
+                    case 'south':
+                        return Math.abs(z - southWallZ) < 2 && x >= westWallX - 1 && x <= eastWallX;
+                    case 'north':
+                        return Math.abs(z - northWallZ) < 2 && x >= westWallX - 1 && x <= eastWallX;
+                    default:
+                        return false;
+                }
+            };
+
+            // Find and remove emitter entities that are outside the current border bounds
+            const allXEmitters = dim.getEntities({ type: 'worldborder:wall_emitter_x' });
+            const allZEmitters = dim.getEntities({ type: 'worldborder:wall_emitter_z' });
+            const allEmitters = [...allXEmitters, ...allZEmitters];
+
+            let removedCount = 0;
+            for (const entity of allEmitters) {
+                const loc = entity.location;
+                const tags = entity.getTags();
+                let wallId = null;
+
+                // Determine wall ID from tags
+                for (const tag of tags) {
+                    if (tag.startsWith('wall:')) {
+                        wallId = tag.substring(5);
+                        break;
+                    }
+                }
+
+                if (!wallId) {
+                    // No wall tag, remove it
+                    try {
+                        entity.remove();
+                        removedCount++;
+                    } catch {}
+                    continue;
+                }
+
+                // Check if this entity is at a valid border position
+                if (!isValidBorderPosition(wallId, loc.x, loc.z)) {
+                    try {
+                        entity.remove();
+                        removedCount++;
+                    } catch {}
+                }
+            }
+
+            if (removedCount > 0) {
+                console.log(`Cleaned up ${removedCount} invalid wall emitters`);
+            }
+
+        } catch (error) {
+            // Cleanup errors are non-critical, log and continue
+            console.warn('Wall emitter cleanup error:', error);
+        }
+    }
+
+    /**
+     * Clear all emitters for a specific dimension (e.g., when disabling or resizing border)
+     */
+    clearWallEmittersForDimension(dimensionKey) {
+        try {
+            // Get dimension object (only overworld for now, can extend later)
+            const dim = world.getDimension('overworld');
+
+            // Remove all emitter entities in this dimension
+            try {
+                const xEmitters = dim.getEntities({ type: 'worldborder:wall_emitter_x' });
+                const zEmitters = dim.getEntities({ type: 'worldborder:wall_emitter_z' });
+                const allEmitters = [...xEmitters, ...zEmitters];
+
+                for (const entity of allEmitters) {
+                    try {
+                        entity.remove();
+                    } catch {}
+                }
+
+                console.log(`Cleared ${allEmitters.length} wall emitters for ${dimensionKey}`);
+            } catch (error) {
+                // Entity query failed, continue anyway
+            }
+
+        } catch (error) {
+            console.warn(`Failed to clear emitters for ${dimensionKey}:`, error);
+        }
+    }
+
+    /**
+     * Safe entity validity check compatible with both boolean and function forms.
+     */
+    isEntityValid(entity) {
+        if (!entity) return false;
+        if (typeof entity.isValid === 'function') return entity.isValid();
+        if (typeof entity.isValid === 'boolean') return entity.isValid;
+        return true;
+    }
+
+
+    /**
      * Start monitoring player positions (optimized)
      */
     startPlayerMonitoring() {
@@ -420,14 +893,34 @@ export class WorldBorderManager {
             }
         }, DEFAULTS.WARNING_CHECK_INTERVAL);
 
-        // Particle system runs less frequently for performance (PERFORMANCE FIX: increased from 10 to 20 ticks)
+        // Particle system with reactive chunk detection (no fixed delay needed)
+        // Each player will spawn particles when their chunks are detected as loaded
         system.runInterval(() => {
+            this.tickCounter += DEFAULTS.PARTICLE_UPDATE_INTERVAL;
             for (const player of world.getPlayers()) {
                 const dimKey = getDimensionKey(player.dimension.id);
                 if (!this.config[dimKey].enabled) continue; // Skip disabled dimensions
-                this.showBorderParticles(player);
+
+                // Use wall particles if enabled, otherwise use traditional particle system
+                if (this.config[dimKey].useWallParticles) {
+                    this.manageWallEmitters(player, dimKey);
+                } else {
+                    this.showBorderParticles(player);
+                }
             }
         }, DEFAULTS.PARTICLE_UPDATE_INTERVAL);
+
+        // Periodic cleanup of stale emitters (runs less frequently)
+        system.runInterval(() => {
+            this.cleanupWallEmitters();
+        }, DEFAULTS.WALL_EMITTER_CLEANUP_INTERVAL);
+
+        // Debug: log emitter count periodically
+        system.runInterval(() => {
+            const entities = world.getDimension('overworld').getEntities({ type: 'worldborder:wall_emitter_x' })
+                .concat(world.getDimension('overworld').getEntities({ type: 'worldborder:wall_emitter_z' }));
+            console.log(`Wall emitters currently valid in overworld: ${entities.length}`);
+        }, 20); // every 20 ticks (~1s)
     }
 
     /**

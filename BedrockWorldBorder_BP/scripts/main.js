@@ -251,6 +251,34 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
         }
     );
 
+    /**
+     * Wall particles command - toggles Java-style wall particles
+     */
+    customCommandRegistry.registerCommand(
+        {
+            name: "worldborder:wallparticles",
+            description: "Toggles Java-style wall particles on/off for specified dimension",
+            permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
+            mandatoryParameters: [
+                {
+                    name: "worldborder:dimension",
+                    type: CustomCommandParamType.Enum,
+                },
+                {
+                    name: "worldborder:onoff",
+                    type: CustomCommandParamType.Enum,
+                }
+            ]
+        },
+        (origin, dimension, onoff) => {
+            if (!origin.sourceEntity) return;
+            system.run(() => {
+                worldBorderManager.setWallParticles(origin.sourceEntity, dimension, onoff === 'on');
+            });
+        }
+    );
+
     // Commands registered successfully
 });
 
@@ -258,6 +286,5 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
 system.run(() => {
     system.runTimeout(() => {
         console.log('BedrockWorldBorder v2.1.1 by Rob \'myGen\' Hall - Loaded successfully!');
-        console.log('Using stable APIs: @minecraft/server 2.3.0, @minecraft/server-ui 2.0.0');
     }, 20);
 });
