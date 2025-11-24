@@ -1,0 +1,105 @@
+<h1 style="color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px;">Changelog</h1>
+
+<p>All notable changes to BedrockWorldBorder will be documented in this file.</p>
+
+<h2 style="color: #34495e; margin-top: 30px;">[2.1.1] - 2025-01-05</h2>
+
+<h3 style="color: #7f8c8d;">Changed</h3>
+<div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;">Updated API dependency from <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">@minecraft/server 2.1.0-beta</code> to <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">2.2.0-beta</code> for compatibility with latest Minecraft Bedrock</li>
+        <li style="margin-bottom: 5px;">Simplified README documentation for better user experience</li>
+        <li style="margin-bottom: 5px;">Made README more focused on server admins and players rather than developers</li>
+    </ul>
+</div>
+
+<h3 style="color: #7f8c8d;">Technical</h3>
+<div style="background-color: #ecf0f1; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;">Maintained <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">@minecraft/server-ui 2.1.0-beta</code> dependency (still current)</li>
+        <li style="margin-bottom: 5px;">All existing features remain unchanged and fully functional</li>
+    </ul>
+</div>
+
+<h2 style="color: #34495e; margin-top: 30px;">[2.1.0] - 2024</h2>
+
+<h3 style="color: #7f8c8d;">Added</h3>
+<div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">GUI Settings System</strong>: Complete in-game interface using ActionFormData and ModalFormData</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Dynamic Particle Effects</strong>: 4 particle types (flame, redstone, portal, critical) with proximity-based scaling</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Knockback Border Action</strong>: Physics-based alternative to teleportation using applyKnockback API</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Custom Center Coordinates</strong>: Set border origin to any X,Z coordinates instead of hardcoded 0,0</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Border Bypass System</strong>: Tag-based permission system allowing trusted players to cross borders</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Per-Dimension Configuration</strong>: Individual settings for particles, actions, warnings, and centers per dimension</li>
+    </ul>
+</div>
+
+<h3 style="color: #7f8c8d;">Enhanced</h3>
+<div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Permission System</strong>: Improved admin notifications with "Beyond border" distance display</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Performance Optimization</strong>: Reduced particle count and improved checking intervals</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Error Handling</strong>: Better form validation and user feedback</li>
+    </ul>
+</div>
+
+<h3 style="color: #7f8c8d;">Fixed</h3>
+<div style="background-color: #f8d7da; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;">Player permission checking using <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">playerPermissionLevel >= 2</code> instead of non-existent <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">player.isOp()</code></li>
+        <li style="margin-bottom: 5px;">Particle names corrected for Bedrock Edition compatibility</li>
+        <li style="margin-bottom: 5px;">Command parameter types fixed for proper player lookup</li>
+        <li style="margin-bottom: 5px;">Admin warning display issues resolved</li>
+    </ul>
+</div>
+
+<h2 style="color: #34495e; margin-top: 30px;">[2.0.0] - 2024</h2>
+
+<h3 style="color: #7f8c8d;">Added</h3>
+<div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Namespaced Slash Commands</strong>: Full <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">/worldborder:</code> command system</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Multi-Dimension Support</strong>: Individual borders for Overworld, Nether, and End</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Smart Teleportation</strong>: Intelligent Y-level preservation and safe block detection</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Persistent Configuration</strong>: Settings saved using dynamic properties system</li>
+    </ul>
+</div>
+
+<h3 style="color: #7f8c8d;">Changed</h3>
+<div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;">Complete rewrite from basic <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">!</code> commands to proper Minecraft slash commands</li>
+        <li style="margin-bottom: 5px;">No longer requires cheats enabled - works with built-in permissions</li>
+    </ul>
+</div>
+
+<h2 style="color: #34495e; margin-top: 30px;">[1.0.1] - 2024</h2>
+
+<h3 style="color: #7f8c8d;">Added</h3>
+<div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Basic World Border</strong>: Simple border enforcement with teleportation</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Admin Notifications</strong>: Alerts when players go outside border</li>
+        <li style="margin-bottom: 5px;"><strong style="color: #2c3e50;">Command System</strong>: Basic <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">!</code> prefix commands requiring cheats</li>
+    </ul>
+</div>
+
+<h3 style="color: #7f8c8d;">Changed</h3>
+<div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;">Commands changed from chat-based to <code style="background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-family: 'Courier New', monospace;">!</code> prefix due to cheat requirements</li>
+        <li style="margin-bottom: 5px;">Updated documentation</li>
+    </ul>
+</div>
+
+<h2 style="color: #34495e; margin-top: 30px;">[1.0.0] - 2024</h2>
+
+<h3 style="color: #7f8c8d;">Added</h3>
+<div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0;">
+    <ul style="margin-left: 20px;">
+        <li style="margin-bottom: 5px;">Initial release with basic world border functionality</li>
+        <li style="margin-bottom: 5px;">Simple teleportation back to spawn when crossing border</li>
+        <li style="margin-bottom: 5px;">Basic configuration options</li>
+    </ul>
+</div>
