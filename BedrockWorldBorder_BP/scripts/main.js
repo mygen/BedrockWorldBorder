@@ -25,6 +25,7 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             name: "worldborder:help",
             description: "Shows available world border commands",
             permissionLevel: CommandPermissionLevel.Any,
+            cheatsRequired: false,
             mandatoryParameters: []
         },
         (origin) => {
@@ -39,6 +40,7 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             name: "worldborder:status",
             description: "Shows current world border status",
             permissionLevel: CommandPermissionLevel.Any,
+            cheatsRequired: false,
             mandatoryParameters: []
         },
         (origin) => {
@@ -53,6 +55,7 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             name: "worldborder:size",
             description: "Sets border size in chunks (16 blocks each)",
             permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
             mandatoryParameters: [
                 { name: "worldborder:dimension", type: CustomCommandParamType.Enum },
                 { name: "chunks", type: CustomCommandParamType.Integer }
@@ -70,6 +73,7 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             name: "worldborder:toggle",
             description: "Toggles world border on/off",
             permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
             mandatoryParameters: [
                 { name: "worldborder:dimension", type: CustomCommandParamType.Enum }
             ]
@@ -86,6 +90,7 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             name: "worldborder:warning",
             description: "Toggles warning messages on/off",
             permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
             mandatoryParameters: [
                 { name: "worldborder:dimension", type: CustomCommandParamType.Enum },
                 { name: "worldborder:onoff", type: CustomCommandParamType.Enum }
@@ -103,6 +108,7 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             name: "worldborder:warndistance",
             description: "Sets warning distance in blocks (0-50)",
             permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
             mandatoryParameters: [
                 { name: "worldborder:dimension", type: CustomCommandParamType.Enum },
                 { name: "blocks", type: CustomCommandParamType.Integer }
@@ -120,6 +126,7 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             name: "worldborder:center",
             description: "Sets the center coordinates",
             permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
             mandatoryParameters: [
                 { name: "worldborder:dimension", type: CustomCommandParamType.Enum },
                 { name: "x", type: CustomCommandParamType.Integer },
@@ -138,6 +145,7 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             name: "worldborder:menu",
             description: "Opens the settings GUI",
             permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
             mandatoryParameters: []
         },
         (origin) => {
@@ -152,6 +160,7 @@ system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
             name: "worldborder:allow",
             description: "Grants or revokes border bypass",
             permissionLevel: CommandPermissionLevel.GameDirectors,
+            cheatsRequired: false,
             mandatoryParameters: [
                 { name: "player", type: CustomCommandParamType.String },
                 { name: "worldborder:onoff", type: CustomCommandParamType.Enum }

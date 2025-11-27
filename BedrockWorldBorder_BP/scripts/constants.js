@@ -123,6 +123,7 @@ export const DEFAULT_DIMENSION_CONFIG = {
         centerX: 0,
         centerZ: 0,
         action: 'teleport',
+        particlesEnabled: true,
         preventInteraction: false,
         particleStyle: 'default'
     },
@@ -134,6 +135,7 @@ export const DEFAULT_DIMENSION_CONFIG = {
         centerX: 0,
         centerZ: 0,
         action: 'teleport',
+        particlesEnabled: true,
         preventInteraction: false,
         particleStyle: 'default'
     },
@@ -145,6 +147,7 @@ export const DEFAULT_DIMENSION_CONFIG = {
         centerX: 0,
         centerZ: 0,
         action: 'teleport',
+        particlesEnabled: true,
         preventInteraction: false,
         particleStyle: 'default'
     }

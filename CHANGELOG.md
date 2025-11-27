@@ -2,6 +2,27 @@
 
 All notable changes to BedrockWorldBorder will be documented in this file.
 
+## [3.0.0] - 2025-01-27
+
+### Added
+- **Java Edition Border Style System**: 11 customizable border styles
+  - New dropdown in admin UI for easy style selection
+  - Each dimension can have a different particle style
+- **Interaction Prevention**: New toggleable feature to prevent block manipulation outside borders
+  - Prevents block breaking outside border
+  - Prevents block placing outside border (blocks returned to player)
+  - Prevents block interaction outside border (chests, doors, buttons, etc.)
+  - Respects admin and bypass permissions
+  - Individual toggle per dimension in admin UI
+
+### Enhanced
+- **View Direction Preservation**: Players now maintain their camera direction when teleported back inside border
+  - Removed jarring camera snap to border center
+
+### Changed
+  - No beta APIs required
+
+
 ## [2.1.1] - 2025-01-05
 
 ### Changed

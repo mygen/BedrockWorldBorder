@@ -218,13 +218,18 @@ export class WorldBorderManager {
             const statusText = config.enabled ? 'Enabled' : 'Disabled';
             const actionText = config.action === 'knockback' ? 'Knockback' : 'Teleport';
             const sizeBlocks = this.chunksToBlocks(config.sizeChunks);
-            
-            const warningText = config.warning 
-                ? `${COLORS.SUCCESS}On ${COLORS.NEUTRAL}(${config.warnDistance} blocks)` 
+
+            const warningText = config.warning
+                ? `${COLORS.SUCCESS}On ${COLORS.NEUTRAL}(${config.warnDistance} blocks)`
                 : `${COLORS.ERROR}Off`;
+
+            // Get particle style display name
+            const styleIndex = PARTICLE_STYLES.OPTIONS.indexOf(config.particleStyle || 'default');
+            const styleDisplayName = styleIndex !== -1 ? PARTICLE_STYLES.NAMES[styleIndex] : 'Default';
 
             player.sendMessage(`${COLORS.WARNING}${dim.charAt(0).toUpperCase() + dim.slice(1)}: ${statusColor}${statusText} ${COLORS.NEUTRAL}| Size: ${COLORS.INFO}${config.sizeChunks} chunks ${COLORS.NEUTRAL}(${sizeBlocks} blocks)`);
             player.sendMessage(`  ${COLORS.NEUTRAL}Center: ${COLORS.INFO}${config.centerX}, ${config.centerZ} ${COLORS.NEUTRAL}| Action: ${COLORS.INFO}${actionText} ${COLORS.NEUTRAL}| Warnings: ${warningText}`);
+            player.sendMessage(`  ${COLORS.NEUTRAL}Style: ${COLORS.INFO}${styleDisplayName}`);
         }
     }
 
@@ -673,14 +678,14 @@ export class WorldBorderManager {
             const form = new ModalFormData()
                 .title(`${dimensionName} Settings`)
                 .toggle('Border Enabled', { defaultValue: config.enabled })
-                .textField('Border Size (chunks)', `Min ${DEFAULTS.MIN_BORDER_SIZE_CHUNKS}`, { defaultValue: config.sizeChunks.toString() })
-                .dropdown('Border Action', actionNames, { defaultValueIndex: actionIndex })
+                .textField('Distance from Center (chunks)', `Min ${DEFAULTS.MIN_BORDER_SIZE_CHUNKS}`, { defaultValue: config.sizeChunks.toString() })
+                .dropdown('Enforcement Action', actionNames, { defaultValueIndex: actionIndex })
                 .toggle('Warnings Enabled', { defaultValue: config.warning })
                 .textField('Warning Distance (blocks)', `0-${DEFAULTS.MAX_WARN_DISTANCE}`, { defaultValue: config.warnDistance.toString() })
                 .textField('Center X', 'X coordinate', { defaultValue: config.centerX.toString() })
                 .textField('Center Z', 'Z coordinate', { defaultValue: config.centerZ.toString() })
                 .toggle('Prevent Interaction Outside Border', { defaultValue: config.preventInteraction ?? false })
-                .dropdown('Particle Style', PARTICLE_STYLES.NAMES, { defaultValueIndex: particleStyleIndex });
+                .dropdown('Border Style', PARTICLE_STYLES.NAMES, { defaultValueIndex: particleStyleIndex });
 
             const response = await form.show(player);
             if (response.canceled) return;
