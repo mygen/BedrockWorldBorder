@@ -4,31 +4,36 @@
  */
 
 /**
+ * World constants
+ */
+export const CHUNK_SIZE = 16;
+
+/**
  * Default configuration values
  */
 export const DEFAULTS = {
-    MIN_BORDER_SIZE: 100,
+    // Border settings (in chunks)
+    MIN_BORDER_SIZE_CHUNKS: 1,
+    DEFAULT_BORDER_SIZE_CHUNKS: 64,
+    
+    // Warning settings (in blocks)
     MAX_WARN_DISTANCE: 50,
-    PARTICLE_RENDER_DISTANCE: 10,
-    WARNING_CHECK_INTERVAL: 10,  // ticks
-    PARTICLE_UPDATE_INTERVAL: 20,  // ticks (1 second - using command-based spawning)
-    INIT_DELAY: 20,  // ticks
-    MAX_GRID_SIZE: 4,  // Reduced from 6 for performance
-    MIN_GRID_SIZE: 2,
-    PARTICLE_SPACING_MIN: 0.4,  // Increased from 0.3 for less density
-    PARTICLE_SPACING_MAX: 0.8,  // Increased from 0.7
-    SAFE_Y_SEARCH_RANGE: 10,
-    MIN_PLAYER_MOVEMENT_FOR_PARTICLE_UPDATE: 1,  // blocks
+    DEFAULT_WARN_DISTANCE: 50,
+    
+    // Wall particle settings
+    WALL_VISIBILITY_CHUNKS: 6,      // Show wall when within 6 chunks (96 blocks)
+    WALL_SEGMENT_CHUNKS: 8,         // Render 8 chunks in each direction from player
+    PARTICLE_SPAWN_Y: 128,          // Y level for particle spawn
+    PARTICLE_SPAWN_INTERVAL: 60,    // Ticks between spawns (3 seconds)
+    
+    // Player monitoring
+    WARNING_CHECK_INTERVAL: 10,
+    INIT_DELAY: 20,
+    
+    // Border enforcement
     KNOCKBACK_HORIZONTAL_STRENGTH: 3.0,
     KNOCKBACK_VERTICAL_STRENGTH: 0.1,
-    MAX_EXTRA_PARTICLES: 1,  // Reduced from 2 for performance
-    WALL_EMITTER_SPACING: 16,  // one anchor per chunk
-    WALL_EMITTER_REFRESH_TICKS: 80,  // re-emit every ~4s to match particle lifetime
-    WALL_EMITTER_MANAGEMENT_RADIUS: 128,  // Only manage emitters within this distance of players
-    WALL_EMITTER_QUERY_RADIUS: 3.0,  // Search radius for finding emitters at a position
-    WALL_EMITTER_POSITION_TOLERANCE: 1.0,  // How close an emitter must be to the target position
-    WALL_EMITTER_CLEANUP_INTERVAL: 200,  // Ticks between cleanup passes (10 seconds)
-    PERSIST_KEY_PREFIX: 'wallEmitters_',  // dynamic property prefix per dimension
+    SAFE_Y_SEARCH_RANGE: 10,
 };
 
 /**
@@ -48,27 +53,36 @@ export const COLORS = {
  * Localized messages
  */
 export const MESSAGES = {
-    INVALID_SIZE: `${COLORS.ERROR}Size must be a positive number.`,
-    BORDER_TOO_SMALL: `${COLORS.ERROR}World border size must be at least ${DEFAULTS.MIN_BORDER_SIZE} blocks.`,
-    SIZE_LESS_THAN_WARN: (size, warnDist) =>
-        `${COLORS.ERROR}Border size (${size}) must be greater than warning distance (${warnDist}).`,
-    WARN_DIST_MUST_BE_NUMBER: `${COLORS.ERROR}Warning distance must be a non-negative number.`,
+    // Validation errors
+    INVALID_SIZE: `${COLORS.ERROR}Size must be a positive number of chunks.`,
+    BORDER_TOO_SMALL: `${COLORS.ERROR}World border size must be at least ${DEFAULTS.MIN_BORDER_SIZE_CHUNKS} chunk(s).`,
+    SIZE_LESS_THAN_WARN: (sizeBlocks, warnDist) =>
+        `${COLORS.ERROR}Border size (${sizeBlocks} blocks) must be greater than warning distance (${warnDist} blocks).`,
     WARN_DIST_TOO_LARGE: `${COLORS.ERROR}Warning distance cannot be greater than ${DEFAULTS.MAX_WARN_DISTANCE} blocks.`,
-    WARN_DIST_GREATER_THAN_SIZE: (warnDist, dim, size) =>
-        `${COLORS.ERROR}Warning distance (${warnDist}) must be less than ${dim} border size (${size}).`,
+    WARN_DIST_GREATER_THAN_SIZE: (warnDist, dim, sizeBlocks) =>
+        `${COLORS.ERROR}Warning distance (${warnDist}) must be less than ${dim} border size (${sizeBlocks} blocks).`,
     INVALID_CENTER_COORDS: `${COLORS.ERROR}Center coordinates must be valid numbers.`,
     INVALID_DIMENSION: `${COLORS.ERROR}Invalid dimension. Use: all, overworld, nether, or end.`,
+    
+    // Player feedback
     AT_BORDER: `${COLORS.ERROR}You have reached the world border!`,
     APPROACHING_BORDER: (distance) =>
         `${COLORS.WARNING}Approaching world border: ${COLORS.ERROR}${distance} ${COLORS.WARNING}blocks remaining`,
     BEYOND_BORDER: (distance) =>
         `${COLORS.ERROR}Beyond border: ${COLORS.INFO}${distance} ${COLORS.ERROR}blocks`,
-    SIZE_SET_ALL: (size) => `${COLORS.SUCCESS}Set world border size to ${COLORS.INFO}${size} ${COLORS.SUCCESS}for all dimensions.`,
-    SIZE_SET_DIM: (size, dim) => `${COLORS.SUCCESS}Set world border size to ${COLORS.INFO}${size} ${COLORS.SUCCESS}for ${dim}.`,
+    INTERACTION_PREVENTED: `${COLORS.ERROR}You cannot interact with blocks outside the world border!`,
+    
+    // Admin feedback - Size
+    SIZE_SET_ALL: (chunks) => `${COLORS.SUCCESS}Set world border size to ${COLORS.INFO}${chunks} chunks ${COLORS.NEUTRAL}(${chunks * CHUNK_SIZE} blocks) ${COLORS.SUCCESS}for all dimensions.`,
+    SIZE_SET_DIM: (chunks, dim) => `${COLORS.SUCCESS}Set world border size to ${COLORS.INFO}${chunks} chunks ${COLORS.NEUTRAL}(${chunks * CHUNK_SIZE} blocks) ${COLORS.SUCCESS}for ${dim}.`,
+    
+    // Admin feedback - Toggle
     BORDER_ENABLED_ALL: `${COLORS.SUCCESS}World border ${COLORS.SUCCESS}enabled ${COLORS.SUCCESS}for all dimensions.`,
     BORDER_DISABLED_ALL: `${COLORS.SUCCESS}World border ${COLORS.ERROR}disabled ${COLORS.SUCCESS}for all dimensions.`,
     BORDER_ENABLED_DIM: (dim) => `${COLORS.SUCCESS}World border ${COLORS.SUCCESS}enabled ${COLORS.SUCCESS}for ${dim}.`,
     BORDER_DISABLED_DIM: (dim) => `${COLORS.SUCCESS}World border ${COLORS.ERROR}disabled ${COLORS.SUCCESS}for ${dim}.`,
+    
+    // Admin feedback - Warnings
     WARNING_ENABLED_ALL: `${COLORS.SUCCESS}World border warnings ${COLORS.SUCCESS}enabled for all dimensions.`,
     WARNING_DISABLED_ALL: `${COLORS.SUCCESS}World border warnings ${COLORS.ERROR}disabled for all dimensions.`,
     WARNING_ENABLED_DIM: (dim) => `${COLORS.SUCCESS}World border warnings ${COLORS.SUCCESS}enabled for ${dim}.`,
@@ -77,18 +91,24 @@ export const MESSAGES = {
         `${COLORS.SUCCESS}Set warning distance to ${COLORS.INFO}${distance} ${COLORS.SUCCESS}blocks for all dimensions.`,
     WARN_DIST_SET_DIM: (distance, dim) =>
         `${COLORS.SUCCESS}Set warning distance to ${COLORS.INFO}${distance} ${COLORS.SUCCESS}blocks for ${dim}.`,
+    
+    // Admin feedback - Center
     CENTER_SET_ALL: (x, z) => `${COLORS.SUCCESS}Set center coordinates to ${COLORS.INFO}${x}, ${z} ${COLORS.SUCCESS}for all dimensions.`,
     CENTER_SET_DIM: (x, z, dim) => `${COLORS.SUCCESS}Set center coordinates to ${COLORS.INFO}${x}, ${z} ${COLORS.SUCCESS}for ${dim}.`,
+    
+    // Admin feedback - Bypass
     BYPASS_GRANTED: (name) => `${COLORS.SUCCESS}Gave border bypass to ${name}.`,
     BYPASS_REVOKED: (name) => `${COLORS.SUCCESS}Removed border bypass from ${name}.`,
     BYPASS_GRANTED_SELF: `${COLORS.SUCCESS}You can now bypass the world border.`,
     BYPASS_REVOKED_SELF: `${COLORS.ERROR}You can no longer bypass the world border.`,
     PLAYER_NOT_FOUND: (name) => `${COLORS.ERROR}Player '${name}' not found.`,
+    
+    // Form messages
     FORM_ERROR: `${COLORS.ERROR}Error opening settings form. Please try again.`,
-    INVALID_FORM_SIZE: `${COLORS.ERROR}Invalid size. Must be at least ${DEFAULTS.MIN_BORDER_SIZE}.`,
-    INVALID_FORM_WARN_DIST: `${COLORS.ERROR}Invalid warning distance. Must be 0-${DEFAULTS.MAX_WARN_DISTANCE}.`,
-    FORM_WARN_GREATER_THAN_SIZE: (warnDist, size) =>
-        `${COLORS.ERROR}Warning distance (${warnDist}) must be less than border size (${size}).`,
+    INVALID_FORM_SIZE: `${COLORS.ERROR}Invalid size. Must be at least ${DEFAULTS.MIN_BORDER_SIZE_CHUNKS} chunk(s).`,
+    INVALID_FORM_WARN_DIST: `${COLORS.ERROR}Invalid warning distance. Must be 0-${DEFAULTS.MAX_WARN_DISTANCE} blocks.`,
+    FORM_WARN_GREATER_THAN_SIZE: (warnDist, sizeBlocks) =>
+        `${COLORS.ERROR}Warning distance (${warnDist}) must be less than border size (${sizeBlocks} blocks).`,
 };
 
 /**
@@ -97,50 +117,45 @@ export const MESSAGES = {
 export const DEFAULT_DIMENSION_CONFIG = {
     overworld: {
         enabled: false,
-        size: 1000,
+        sizeChunks: 64,
         warning: true,
         warnDistance: 50,
         centerX: 0,
         centerZ: 0,
-        particlesEnabled: true,
-        particleType: 'flame',
-        useWallParticles: false,
-        action: 'teleport'
+        action: 'teleport',
+        preventInteraction: false,
+        particleStyle: 'default'
     },
     nether: {
         enabled: false,
-        size: 1000,
+        sizeChunks: 64,
         warning: true,
         warnDistance: 50,
         centerX: 0,
         centerZ: 0,
-        particlesEnabled: true,
-        particleType: 'redstone',
-        useWallParticles: false,
-        action: 'teleport'
+        action: 'teleport',
+        preventInteraction: false,
+        particleStyle: 'default'
     },
     end: {
         enabled: false,
-        size: 1000,
+        sizeChunks: 64,
         warning: true,
         warnDistance: 50,
         centerX: 0,
         centerZ: 0,
-        particlesEnabled: true,
-        particleType: 'portal',
-        useWallParticles: false,
-        action: 'teleport'
+        action: 'teleport',
+        preventInteraction: false,
+        particleStyle: 'default'
     }
 };
 
 /**
- * Particle type mapping
+ * Available particle styles
  */
-export const PARTICLE_TYPES = {
-    'flame': 'minecraft:basic_flame_particle',
-    'redstone': 'minecraft:redstone_wire_dust_particle',
-    'portal': 'minecraft:basic_portal_particle',
-    'critical': 'minecraft:critical_hit_emitter'
+export const PARTICLE_STYLES = {
+    OPTIONS: ['default', 'style1', 'style2', 'style3', 'style4', 'style5', 'style6', 'style7', 'style8', 'style9', 'style10'],
+    NAMES: ['Default', 'Style 1', 'Style 2', 'Style 3', 'Style 4', 'Style 5', 'Style 6', 'Style 7', 'Style 8', 'Style 9', 'Style 10']
 };
 
 /**

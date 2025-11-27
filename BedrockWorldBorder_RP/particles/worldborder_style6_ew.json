@@ -2,10 +2,10 @@
     "format_version": "1.10.0",
     "particle_effect": {
         "description": {
-            "identifier": "worldborder:worldborder",
+            "identifier": "worldborder:worldborder_style6_ew",
             "basic_render_parameters": {
                 "material": "particles_add",
-                "texture": "textures/particle/default"
+                "texture": "textures/particle/style6"
             }
         },
         "components": {
@@ -26,7 +26,7 @@
                 "facing_camera_mode": "direction_z",
                 "direction": {
                     "mode": "custom",
-                    "custom_direction": [1, 0, 0]
+                    "custom_direction": [0, 0, 1]
                 },
                 "uv": {
                     "texture_width": 256,

@@ -2,10 +2,10 @@
     "format_version": "1.10.0",
     "particle_effect": {
         "description": {
-            "identifier": "worldborder:worldborder",
+            "identifier": "worldborder:worldborder_style9",
             "basic_render_parameters": {
                 "material": "particles_add",
-                "texture": "textures/particle/default"
+                "texture": "textures/particle/style9"
             }
         },
         "components": {

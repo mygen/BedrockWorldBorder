@@ -2,28 +2,23 @@
     "format_version": 2,
     "header": {
         "name": "BedrockWorldBorder",
-        "description": "A comprehensive world border addon with multi-dimension support, admin controls, and configurable warnings",
+        "description": "Java-style world border with chunk-based sizing and visual wall particles",
         "uuid": "3e821d0f-d902-4ea1-ab8b-1b85ac8e8eab",
-        "version": [2, 1, 1],
-        "min_engine_version": [1, 21, 100]
+        "version": [3, 0, 0],
+        "min_engine_version": [1, 21, 50]
     },
     "metadata": {
         "authors": ["Rob 'myGen' Hall"],
         "license": "CC BY-NC-SA 4.0",
-        "url": "https://www.britannica.world"
+        "url": "https://www.mygen.co.uk"
     },
     "modules": [
         {
             "type": "script",
             "language": "javascript",
             "uuid": "8bfa6b92-4109-4122-ba4f-aca99d125001",
-            "version": [2, 1, 1],
+            "version": [3, 0, 0],
             "entry": "scripts/main.js"
-        },
-        {
-            "type": "data",
-            "uuid": "64e6f132-ef2a-4dc1-a5c6-3b1ee23e32f3",
-            "version": [2, 1, 1]
         }
     ],
     "dependencies": [
@@ -37,7 +32,7 @@
         },
         {
             "uuid": "a7f3c8e2-5d91-4b3a-9c6f-2e8d4a1b7f9c",
-            "version": [2, 1, 1]
+            "version": [3, 0, 0]
         }
     ]
 }
